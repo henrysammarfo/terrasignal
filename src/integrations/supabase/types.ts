@@ -14,6 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
+      crop_signals: {
+        Row: {
+          bbox: number[] | null
+          created_at: string
+          crop_type: string | null
+          event_content: string | null
+          event_source: string | null
+          event_title: string
+          event_url: string | null
+          id: string
+          published_at: string | null
+          region_name: string
+          severity: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          bbox?: number[] | null
+          created_at?: string
+          crop_type?: string | null
+          event_content?: string | null
+          event_source?: string | null
+          event_title: string
+          event_url?: string | null
+          id?: string
+          published_at?: string | null
+          region_name: string
+          severity?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          bbox?: number[] | null
+          created_at?: string
+          crop_type?: string | null
+          event_content?: string | null
+          event_source?: string | null
+          event_title?: string
+          event_url?: string | null
+          id?: string
+          published_at?: string | null
+          region_name?: string
+          severity?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      intel_reports: {
+        Row: {
+          confidence: number | null
+          generated_at: string
+          headline: string
+          id: string
+          market_implication: string | null
+          signal_id: string
+          summary: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          generated_at?: string
+          headline: string
+          id?: string
+          market_implication?: string | null
+          signal_id: string
+          summary?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          generated_at?: string
+          headline?: string
+          id?: string
+          market_implication?: string | null
+          signal_id?: string
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intel_reports_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "crop_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          read: boolean
+          report_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          report_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          report_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "intel_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -40,6 +164,100 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      satellite_analyses: {
+        Row: {
+          acquisition_date: string | null
+          anomaly_score: number | null
+          cloud_cover_pct: number | null
+          created_at: string
+          id: string
+          msi_mean: number | null
+          ndvi_delta: number | null
+          ndvi_mean: number | null
+          ndwi_mean: number | null
+          signal_id: string
+          thumbnail_url: string | null
+        }
+        Insert: {
+          acquisition_date?: string | null
+          anomaly_score?: number | null
+          cloud_cover_pct?: number | null
+          created_at?: string
+          id?: string
+          msi_mean?: number | null
+          ndvi_delta?: number | null
+          ndvi_mean?: number | null
+          ndwi_mean?: number | null
+          signal_id: string
+          thumbnail_url?: string | null
+        }
+        Update: {
+          acquisition_date?: string | null
+          anomaly_score?: number | null
+          cloud_cover_pct?: number | null
+          created_at?: string
+          id?: string
+          msi_mean?: number | null
+          ndvi_delta?: number | null
+          ndvi_mean?: number | null
+          ndwi_mean?: number | null
+          signal_id?: string
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "satellite_analyses_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "crop_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weather_contexts: {
+        Row: {
+          created_at: string
+          date_from: string | null
+          date_to: string | null
+          drought_index: string | null
+          id: string
+          precip_anomaly_mm: number | null
+          signal_id: string
+          soil_moisture_percentile: number | null
+          temp_anomaly_c: number | null
+        }
+        Insert: {
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          drought_index?: string | null
+          id?: string
+          precip_anomaly_mm?: number | null
+          signal_id: string
+          soil_moisture_percentile?: number | null
+          temp_anomaly_c?: number | null
+        }
+        Update: {
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          drought_index?: string | null
+          id?: string
+          precip_anomaly_mm?: number | null
+          signal_id?: string
+          soil_moisture_percentile?: number | null
+          temp_anomaly_c?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weather_contexts_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "crop_signals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
