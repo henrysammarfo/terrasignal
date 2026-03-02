@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import Logo from "@/components/Logo";
 
 const Navbar = () => {
   const { session } = useAuth();
@@ -11,14 +12,8 @@ const Navbar = () => {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-white/70 backdrop-blur-md border-b border-border/40"
     >
-      {/* Logo */}
-      <a href="/" className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center">
-          <span className="text-background text-xs font-bold font-['Geist']">T</span>
-        </div>
-        <span className="text-[17px] font-semibold font-['Geist'] tracking-[-0.02em] text-foreground">
-          TerraSignal
-        </span>
+      <a href="/">
+        <Logo />
       </a>
 
       {/* Nav Links */}

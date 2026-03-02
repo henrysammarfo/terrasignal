@@ -5,6 +5,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion } from "motion/react";
+import Logo from "@/components/Logo";
 
 const Auth = () => {
   const { session, loading } = useAuth();
@@ -73,13 +74,8 @@ const Auth = () => {
         className="w-full max-w-[400px]"
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 mb-10">
-          <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center">
-            <span className="text-background text-xs font-bold font-['Geist']">T</span>
-          </div>
-          <span className="text-[17px] font-semibold font-['Geist'] tracking-[-0.02em] text-foreground">
-            TerraSignal
-          </span>
+        <div className="mb-10">
+          <Logo />
         </div>
 
         <h1 className="font-['Geist'] font-medium text-[28px] tracking-[-0.03em] text-foreground mb-2">
