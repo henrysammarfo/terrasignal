@@ -23,16 +23,16 @@ const HeroSection = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto max-w-[1200px] px-6 pt-[290px] flex flex-col gap-8">
+      <div className="relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 pt-[180px] sm:pt-[240px] md:pt-[290px] flex flex-col gap-6 sm:gap-8">
         {/* Heading */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="font-['Geist'] font-medium text-[80px] leading-[1.05] tracking-[-0.04em] text-foreground"
+          className="font-['Geist'] font-medium text-[36px] sm:text-[56px] md:text-[80px] leading-[1.05] tracking-[-0.04em] text-foreground"
         >
           Simple{" "}
-          <span className="font-['Instrument_Serif'] italic text-[100px]">
+          <span className="font-['Instrument_Serif'] italic text-[44px] sm:text-[68px] md:text-[100px]">
             management
           </span>
           <br />
@@ -44,7 +44,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-          className="font-['Geist'] text-[18px] leading-[1.6] text-[#373a46] opacity-80 max-w-[554px]"
+          className="font-['Geist'] text-[15px] sm:text-[18px] leading-[1.6] text-[#373a46] opacity-80 max-w-[554px]"
         >
           TerraSignal delivers real-time commodity intelligence — monitoring
           news, satellite imagery, and market signals so your team can act
@@ -60,7 +60,7 @@ const HeroSection = () => {
         >
           {/* Input Container */}
           <div
-            className="flex items-center rounded-[40px] bg-[#fcfcfc] border border-border px-2 py-1.5"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center rounded-[20px] sm:rounded-[40px] bg-[#fcfcfc] border border-border px-2 py-1.5 gap-2 sm:gap-0"
             style={{
               boxShadow: "0px 10px 40px 5px rgba(194,194,194,0.25)",
             }}
@@ -68,7 +68,7 @@ const HeroSection = () => {
             <input
               type="email"
               placeholder="Enter your email address"
-              className="flex-1 bg-transparent px-5 py-3 text-[15px] font-['Geist'] text-foreground placeholder:text-muted-foreground outline-none"
+              className="flex-1 bg-transparent px-4 sm:px-5 py-3 text-[15px] font-['Geist'] text-foreground placeholder:text-muted-foreground outline-none"
             />
             <button
               className="rounded-[32px] px-6 py-3 text-[14px] font-medium font-['Geist'] text-white whitespace-nowrap"

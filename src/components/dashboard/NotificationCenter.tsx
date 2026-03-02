@@ -31,7 +31,7 @@ const NotificationCenter = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 top-12 z-50 w-[360px] max-h-[480px] overflow-auto rounded-xl border border-border bg-card shadow-lg"
+              className="absolute right-0 top-12 z-50 w-[calc(100vw-2rem)] sm:w-[360px] max-h-[480px] overflow-auto rounded-xl border border-border bg-card shadow-lg"
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <h3 className="font-['Geist'] font-medium text-[14px] text-foreground">Notifications</h3>
