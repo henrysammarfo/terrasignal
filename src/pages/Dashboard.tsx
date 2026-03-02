@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { LogOut, LayoutDashboard, Map, Activity } from "lucide-react";
-import { useState } from "react";
+import { LogOut, Activity, Map } from "lucide-react";
+import Logo from "@/components/Logo";
 import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
@@ -28,12 +29,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center">
-            <span className="text-background text-xs font-bold font-['Geist']">T</span>
-          </div>
-          <span className="text-[17px] font-semibold font-['Geist'] tracking-[-0.02em] text-foreground">TerraSignal</span>
-        </div>
+        <Logo />
         <div className="flex items-center gap-3">
           <NotificationCenter />
           <button
