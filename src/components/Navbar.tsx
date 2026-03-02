@@ -1,6 +1,9 @@
 import { motion } from "motion/react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const { session } = useAuth();
   return (
     <motion.nav
       initial={{ opacity: 0, y: -10 }}
@@ -31,10 +34,16 @@ const Navbar = () => {
         ))}
       </div>
 
-      {/* Sign In */}
-      <button className="text-[14px] font-['Geist'] font-medium text-foreground px-5 py-2 rounded-full border border-border hover:bg-muted transition-colors">
-        Sign In
-      </button>
+      {/* Auth */}
+      {session ? (
+        <Link to="/dashboard" className="text-[14px] font-['Geist'] font-medium text-foreground px-5 py-2 rounded-full border border-border hover:bg-muted transition-colors">
+          Dashboard
+        </Link>
+      ) : (
+        <Link to="/auth" className="text-[14px] font-['Geist'] font-medium text-foreground px-5 py-2 rounded-full border border-border hover:bg-muted transition-colors">
+          Sign In
+        </Link>
+      )}
     </motion.nav>
   );
 };
