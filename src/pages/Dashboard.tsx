@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { LogOut, Activity, Map, BarChart3 } from "lucide-react";
+import { LogOut, Activity, Map, BarChart3, Settings } from "lucide-react";
 import Logo from "@/components/Logo";
 import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
@@ -34,6 +34,13 @@ const Dashboard = () => {
         <Logo />
         <div className="flex items-center gap-3">
           <NotificationCenter />
+          <button
+            onClick={() => navigate("/settings")}
+            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            API
+          </button>
           <button
             onClick={handleSignOut}
             className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
