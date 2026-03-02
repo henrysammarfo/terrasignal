@@ -30,9 +30,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { user_id, signal, satellite, weather, report } = body;
 
-    if (!user_id || !signal || !report) {
+    if (!signal || !report) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: user_id, signal, report" }),
+        JSON.stringify({ error: "Missing required fields: signal, report" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

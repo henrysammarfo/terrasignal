@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { LogOut, Activity, Map } from "lucide-react";
+import { LogOut, Activity, Map, BarChart3 } from "lucide-react";
 import Logo from "@/components/Logo";
 import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
+import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
-type Tab = "feed" | "map";
+type Tab = "feed" | "map" | "charts";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -23,12 +24,13 @@ const Dashboard = () => {
   const tabs: { id: Tab; label: string; icon: any }[] = [
     { id: "feed", label: "Intel Feed", icon: Activity },
     { id: "map", label: "Signal Map", icon: Map },
+    { id: "charts", label: "Charts", icon: BarChart3 },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-background/80 backdrop-blur-md border-b border-border">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 bg-background/80 backdrop-blur-md border-b border-border">
         <Logo />
         <div className="flex items-center gap-3">
           <NotificationCenter />
@@ -43,11 +45,11 @@ const Dashboard = () => {
       </div>
 
       {/* Content */}
-      <div className="mx-auto max-w-[1000px] px-6 pt-20 pb-12">
+      <div className="mx-auto max-w-[1000px] px-4 sm:px-6 pt-20 pb-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="flex items-end justify-between mb-6">
             <div>
-              <h1 className="font-['Geist'] font-medium text-[28px] tracking-[-0.03em] text-foreground">Dashboard</h1>
+              <h1 className="font-['Geist'] font-medium text-[22px] sm:text-[28px] tracking-[-0.03em] text-foreground">Dashboard</h1>
               <p className="font-['Geist'] text-[14px] text-muted-foreground mt-0.5">Welcome, {user?.email}</p>
             </div>
           </div>
@@ -70,6 +72,7 @@ const Dashboard = () => {
 
           {tab === "feed" && <IntelFeed />}
           {tab === "map" && <SignalMap />}
+          {tab === "charts" && <SignalCharts />}
         </motion.div>
       </div>
     </div>

@@ -77,7 +77,7 @@ const SignalMap = () => {
 
   return (
     <div className="rounded-xl border border-border overflow-hidden bg-card">
-      <div ref={mapRef} className="w-full h-[500px]" />
+      <div ref={mapRef} className="w-full h-[300px] sm:h-[400px] md:h-[500px]" />
     </div>
   );
 };
