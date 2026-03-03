@@ -1,1 +1,7 @@
 project_id = "ufncnuhzqdgefrdkrrhz"
+
+[functions.webhook-receiver]
+verify_jwt = false
+
+[functions.openclaw-alert]
+verify_jwt = false

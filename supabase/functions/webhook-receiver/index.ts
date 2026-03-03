@@ -112,6 +112,24 @@ Deno.serve(async (req) => {
     });
     if (notifError) console.error("Notification insert error:", notifError);
 
+    // Auto-forward high-severity alerts to OpenClaw
+    const sev = signal.severity || "low";
+    if (sev === "high" || sev === "critical") {
+      try {
+        const funcUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/openclaw-alert`;
+        await fetch(funcUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ report_id: reportData.id }),
+        });
+      } catch (e) {
+        console.error("OpenClaw forwarding error:", e);
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, signal_id: signalId, report_id: reportData.id }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
