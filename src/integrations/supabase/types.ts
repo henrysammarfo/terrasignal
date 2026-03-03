@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_scans: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          events_detected: number | null
+          id: string
+          regions_scanned: number | null
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          events_detected?: number | null
+          id?: string
+          regions_scanned?: number | null
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          events_detected?: number | null
+          id?: string
+          regions_scanned?: number | null
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       crop_signals: {
         Row: {
           bbox: number[] | null
