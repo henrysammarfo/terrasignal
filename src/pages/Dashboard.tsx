@@ -8,6 +8,7 @@ import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
 import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
+import AgentRunner from "@/components/dashboard/AgentRunner";
 
 type Tab = "feed" | "map" | "charts";
 
@@ -77,7 +78,12 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {tab === "feed" && <IntelFeed />}
+          {tab === "feed" && (
+            <>
+              <AgentRunner />
+              <IntelFeed />
+            </>
+          )}
           {tab === "map" && <SignalMap />}
           {tab === "charts" && <SignalCharts />}
         </motion.div>

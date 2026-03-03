@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.openclaw-alert]
 verify_jwt = false
+
+[functions.agent-scan]
+verify_jwt = false
