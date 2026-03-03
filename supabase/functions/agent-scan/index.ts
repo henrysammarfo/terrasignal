@@ -40,6 +40,21 @@ Deno.serve(async (req) => {
       userId = body.user_id || null;
     } catch { /* no body is fine */ }
 
+    // Record scan start
+    let scanId: string | null = null;
+    if (userId) {
+      const { data: scanData } = await supabase
+        .from("agent_scans")
+        .insert({
+          user_id: userId,
+          status: "running",
+          regions_scanned: SCAN_TARGETS.length,
+        })
+        .select("id")
+        .single();
+      scanId = scanData?.id || null;
+    }
+
     const results: any[] = [];
 
     // Step 1: Use AI to detect current real-world agricultural events
@@ -289,10 +304,23 @@ Make events realistic and varied in severity. At least one should be critical/hi
       });
     }
 
+    // Update scan record
+    if (scanId) {
+      await supabase
+        .from("agent_scans")
+        .update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+          events_detected: results.length,
+        })
+        .eq("id", scanId);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         agent: "TerraSignal AI Agent v1",
+        scan_id: scanId,
         events_detected: results.length,
         results,
       }),
@@ -300,6 +328,18 @@ Make events realistic and varied in severity. At least one should be critical/hi
     );
   } catch (error) {
     console.error("Agent scan error:", error);
+    // Try to mark scan as failed
+    try {
+      const body = await req.clone().json().catch(() => ({}));
+      if (body.user_id) {
+        const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+        await sb.from("agent_scans").update({
+          status: "failed",
+          completed_at: new Date().toISOString(),
+          error_message: error instanceof Error ? error.message : "Unknown error",
+        }).eq("user_id", body.user_id).eq("status", "running");
+      }
+    } catch { /* best effort */ }
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

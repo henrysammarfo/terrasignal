@@ -9,6 +9,7 @@ import SignalMap from "@/components/dashboard/SignalMap";
 import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import AgentRunner from "@/components/dashboard/AgentRunner";
+import AgentHistory from "@/components/dashboard/AgentHistory";
 
 type Tab = "feed" | "map" | "charts";
 
@@ -82,6 +83,7 @@ const Dashboard = () => {
             <>
               <AgentRunner />
               <IntelFeed />
+              <AgentHistory />
             </>
           )}
           {tab === "map" && <SignalMap />}
