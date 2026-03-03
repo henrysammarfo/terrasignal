@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 export interface IntelReportRow {
   id: string;
@@ -40,11 +41,38 @@ export interface IntelReportRow {
 
 export const useIntelReports = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Realtime: auto-refresh when new reports or signals land
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("intel-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "intel_reports" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["intel-reports"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "crop_signals" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["intel-reports"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   return useQuery({
     queryKey: ["intel-reports", user?.id],
     queryFn: async () => {
-      // First get reports with their crop signals
       const { data: reports, error } = await supabase
         .from("intel_reports")
         .select(`
@@ -58,7 +86,6 @@ export const useIntelReports = () => {
       if (error) throw error;
       if (!reports?.length) return [] as IntelReportRow[];
 
-      // Get signal IDs to fetch satellite and weather data
       const signalIds = reports.map((r: any) => r.signal_id);
 
       const [satResult, weatherResult] = await Promise.all([
