@@ -41,15 +41,12 @@ That UUID is your **SUPABASE_AGENT_USER_ID**: the Python agent sends all reports
 
 ### 2b. Deploy Edge Functions
 
-From your machine (after merge):
+You don’t need to run Supabase CLI from your machine. Use **Lovable** or the **Supabase Dashboard**:
 
-```bash
-npx supabase link --project-ref YOUR_PROJECT_REF
-npx supabase functions deploy webhook-receiver
-npx supabase functions deploy openclaw-alert
-```
+- **Option A — Lovable:** Open your Lovable project chat and use the prompts in **[LOVABLE_PROMPTS.md](LOVABLE_PROMPTS.md)** (e.g. “Deploy all Supabase Edge Functions…”). Lovable can deploy the functions to your connected Supabase project.
+- **Option B — Supabase Dashboard:** In Supabase → Edge Functions, deploy from GitHub or create the functions manually and paste the code from `supabase/functions/webhook-receiver/index.ts` and `openclaw-alert/index.ts`. See LOVABLE_PROMPTS.md section 3 for steps.
 
-Replace `YOUR_PROJECT_REF` with your Supabase project ref (Lovable env `VITE_SUPABASE_PROJECT_ID` or the ref in the Supabase URL).
+After deploy, set **WEBHOOK_API_KEY** in the webhook-receiver’s secrets (Supabase Dashboard or via Lovable prompt), and use the same value in your Python `.env`.
 
 ### 2c. Edge Function secrets
 
@@ -91,7 +88,9 @@ Reports in the dashboard come **only** from the Python agent posting to the **we
    | `FLOCK_API_KEY`            | Your Flock API key                                                    |
    | `SLACK_WEBHOOK_URL`        | Optional; for Slack alerts                                            |
 
-3. Push to **main**. The workflow runs on a schedule (e.g. every 6 hours); each run can produce reports and send them to the webhook. **Every** beta tester sees them in the dashboard (same feed).
+3. Push to **main**. The workflow runs on a schedule (e.g. every hour); each run can produce reports and send them to the webhook. **Every** beta tester sees them in the dashboard (same feed).
+
+**If GitHub Actions can’t run** (billing, spending limit, etc.), run the agent on a **hosted scheduler** instead — see **[RUN_AGENT_HOSTED.md](RUN_AGENT_HOSTED.md)** (Render Cron Job, cron-job.org + HTTP trigger, or Modal). No local machine required.
 
 ### Option B: Your own server / cron
 
