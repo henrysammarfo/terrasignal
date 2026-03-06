@@ -6,7 +6,7 @@ name: Run TerraSignal agent
 
 on:
   schedule:
-    - cron: "0 * * * *"   # Every hour
+    - cron: "0 */1 * * *"   # Every 6 hours
   workflow_dispatch:        # Allow manual run from Actions tab
 
 jobs:
