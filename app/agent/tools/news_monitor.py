@@ -14,10 +14,17 @@ from app.models.schemas import CropSignal, NewsEvent
 
 logger = logging.getLogger(__name__)
 
-RSS_FEEDS = [
+# Tier 1: often blocked or slow in restricted networks (e.g. Modal)
+RSS_FEEDS_PRIMARY = [
     "https://feeds.reuters.com/reuters/businessNews",
     "https://www.usda.gov/rss/home.xml",
+]
+
+# Tier 2: different hosts; try when tier 1 fails so we still get real live news
+RSS_FEEDS_SECONDARY = [
     "https://www.fao.org/feeds/fao-newsroom-rss",
+    "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
+    "https://reliefweb.int/updates/rss.xml",
 ]
 
 # Timeout and retries for fetching feeds
@@ -40,11 +47,9 @@ def _fetch_feed(url: str) -> str | None:
     return None
 
 
-def parse_feeds() -> list[NewsEvent]:
-    """Poll all feeds; dedupe by URL; return up to 50 items sorted by published_at desc."""
-    seen: set[str] = set()
-    out: list[NewsEvent] = []
-    for url in RSS_FEEDS:
+def _parse_feed_list(urls: list[str], seen: set[str], out: list[NewsEvent]) -> None:
+    """Fetch and parse a list of feed URLs; append to out, update seen."""
+    for url in urls:
         raw = _fetch_feed(url)
         if not raw:
             continue
@@ -79,6 +84,16 @@ def parse_feeds() -> list[NewsEvent]:
                     source=source,
                 )
             )
+
+
+def parse_feeds() -> list[NewsEvent]:
+    """Try primary feeds first; if none return events, try secondary (real live feeds only)."""
+    seen: set[str] = set()
+    out: list[NewsEvent] = []
+    _parse_feed_list(RSS_FEEDS_PRIMARY, seen, out)
+    if not out:
+        logger.info("Primary feeds returned no events; trying secondary feeds")
+        _parse_feed_list(RSS_FEEDS_SECONDARY, seen, out)
     out.sort(key=lambda e: e.published_at, reverse=True)
     return out[:50]
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
+from datetime import datetime, timezone
 from typing import Any
 
 from langgraph.graph import END, StateGraph
@@ -10,7 +12,7 @@ from langgraph.graph import END, StateGraph
 from app.agent.state import AgentState
 from app.agent.tools import geocoder, news_monitor, report_generator
 from app.config import settings
-from app.models.schemas import CropSignal, IntelReport
+from app.models.schemas import CropSignal, IntelReport, NewsEvent
 from delivery import send_slack, send_to_supabase_webhook
 
 logger = logging.getLogger(__name__)
@@ -24,10 +26,35 @@ def _set_error(state: AgentState, msg: str) -> AgentState:
     return state
 
 
+def _seed_signal() -> CropSignal:
+    """Fallback when RSS is unreachable (e.g. Modal network). Set E2E_USE_SEED_SIGNAL=1."""
+    seed = NewsEvent(
+        id="e2e-seed-1",
+        title="Drought stress in Mato Grosso raises soybean supply concerns",
+        content="Dry conditions in Brazil's main soybean region.",
+        published_at=datetime.now(timezone.utc),
+        url="https://example.com/e2e-seed",
+        source="E2E seed",
+    )
+    return CropSignal(
+        event=seed,
+        region_name="Mato Grosso, Brazil",
+        bbox=[0.0, 0.0, 0.0, 0.0],
+        crop_type="Soybean",
+        severity="high",
+    )
+
+
 def news_monitor_node(state: AgentState) -> AgentState:
     try:
         signals = news_monitor.monitor_once()
         if not signals:
+            # Only after primary + secondary feeds all failed: optional seed so pipeline still runs.
+            if os.environ.get("E2E_USE_SEED_SIGNAL", "").strip().lower() in ("1", "true", "yes"):
+                logger.info("No signals from any feed tier; using E2E_USE_SEED_SIGNAL fallback")
+                state["active_signal"] = _seed_signal()
+                state["error"] = None
+                return state
             state["active_signal"] = None
             state["error"] = "No signals found"
             return state
@@ -67,19 +94,28 @@ def sentinel_node(state: AgentState) -> AgentState:
         return _set_error(state, "No active signal")
     try:
         from datetime import datetime, timezone
-        from app.agent.tools.sentinel_retriever import get_baseline_image, get_best_image, get_preview_url
-        from app.agent.tools.spectral_analyzer import analyze as spectral_analyze
+        from pathlib import Path
         target = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        current_ds, current_meta, current_item = get_best_image(sig.bbox, target)
-        baseline_ds, _ = get_baseline_image(sig.bbox, target)
-        cloud = float(current_meta.get("eo:cloud_cover", 0))
-        acq = current_meta.get("datetime")
-        if acq:
-            acq = str(acq)[:10] if hasattr(acq, "__str__") else None
-        sat = spectral_analyze(current_ds, baseline_ds, sig, acquisition_date=acq, cloud_cover_pct=cloud)
-        preview_url = get_preview_url(current_item)
-        if preview_url:
-            sat.thumbnail_path = preview_url
+        use_data_api = getattr(settings, "use_sentinel_data_api", False)
+        if use_data_api:
+            from app.agent.tools.sentinel_data_api import get_best_image_data_api
+            thumb_dir = Path("data") / "thumbnails"
+            thumb_dir.mkdir(parents=True, exist_ok=True)
+            thumb_path = str(thumb_dir / "orchestrator.jpg")
+            sat, _ = get_best_image_data_api(sig.bbox, target, sig, thumb_path=thumb_path)
+        else:
+            from app.agent.tools.sentinel_retriever import get_baseline_image, get_best_image, get_preview_url
+            from app.agent.tools.spectral_analyzer import analyze as spectral_analyze
+            current_ds, current_meta, current_item = get_best_image(sig.bbox, target)
+            baseline_ds, _ = get_baseline_image(sig.bbox, target)
+            cloud = float(current_meta.get("eo:cloud_cover", 0))
+            acq = current_meta.get("datetime")
+            if acq:
+                acq = str(acq)[:10] if hasattr(acq, "__str__") else None
+            sat = spectral_analyze(current_ds, baseline_ds, sig, acquisition_date=acq, cloud_cover_pct=cloud)
+            preview_url = get_preview_url(current_item)
+            if preview_url:
+                sat.thumbnail_path = preview_url
         state["satellite_data"] = sat
         state["error"] = None
         return state

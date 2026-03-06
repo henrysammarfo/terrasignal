@@ -123,6 +123,23 @@ python main.py run --once
 
 ---
 
+## 5.1 Lovable live checklist (confirm end-to-end)
+
+Use this to confirm the dashboard on **Lovable’s side** is live and showing agent data.
+
+| Step | Where | What to check |
+|------|--------|----------------|
+| 1 | **Lovable** → project → Deploy / Preview | Note the **live app URL**. Open it in a browser. |
+| 2 | **Lovable** → Environment / Integrations | Supabase connected (project `ufncnuhzqdgefrdkrrhz`). Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`. Redeploy if you changed them. |
+| 3 | **Supabase** → Table Editor → `intel_reports` | Rows exist; `user_id` = system agent UUID. If empty, agent has not run yet or webhook is not receiving. |
+| 4 | **Supabase** → Edge Functions | **webhook-receiver** deployed; secret **WEBHOOK_API_KEY** set (same as Modal secret `terrasignal`). |
+| 5 | **Modal** → Apps → terrasignal-agent → Logs | Recent runs show success. Agent runs every 30 min and POSTs to webhook. |
+| 6 | **Lovable app URL** | Sign in → Intel Feed. You see reports. If feed empty but table has rows, check RLS and login. |
+
+**Quick test:** Run `modal run modal_agent.py`. Wait 2–5 min, refresh the Lovable app Intel Feed; new report should appear. That confirms: Modal → webhook → Supabase → Lovable dashboard.
+
+---
+
 ## Quick checklist
 
 - [ ] Merge live branch into main and push.

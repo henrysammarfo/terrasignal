@@ -13,6 +13,7 @@ Setup:
      - USE_SENTINEL_DATA_API  = 1
      - SLACK_WEBHOOK_URL      (optional)
      - FLOCK_MODEL            (optional, default in code)
+     - E2E_USE_SEED_SIGNAL    = 1   (use when RSS is unreachable in Modal, e.g. DNS/egress)
 
   4. Deploy (scheduled runs every 30 min):
      modal deploy modal_agent.py
