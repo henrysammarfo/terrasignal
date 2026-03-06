@@ -1,0 +1,58 @@
+# TerraSignal Python Agent — full implementation
+# Python 3.11 or 3.12 required for full pipeline (Sentinel-2). 3.14 can crash (native EO libs).
+
+# LLM: Flock AI (OpenAI-compatible API)
+httpx>=0.27.0
+
+# Orchestration
+langgraph>=0.2.0
+
+# Satellite / EO
+pystac-client>=0.8.0
+stackstac>=0.5.0
+planetary-computer>=1.0.0
+rioxarray>=0.17.0
+rasterio>=1.3.0
+numpy>=1.26.0
+scipy>=1.13.0
+geopandas>=1.0.0
+shapely>=2.0.0
+xarray>=2024.1.0
+
+# News
+feedparser>=6.0.0
+
+# Weather
+openmeteo-requests>=1.3.0
+retry-requests>=2.0.0
+requests-cache>=1.2.0
+
+# Geocoding fallback
+geopy>=2.4.0
+
+# Config & CLI
+pydantic>=2.8.0
+pydantic-settings>=2.4.0
+python-dotenv>=1.0.0
+click>=8.1.0
+rich>=13.0.0
+
+# Dashboard (optional)
+streamlit>=1.37.0
+plotly>=5.22.0
+folium>=0.17.0
+pandas>=2.2.0
+
+# Delivery
+slack-sdk>=3.31.0
+
+# Imaging
+pillow>=10.4.0
+matplotlib>=3.9.0
+
+# Optional: live commodity prices for report context
+yfinance>=0.2.0
+
+# Tests
+pytest>=8.0.0
+ruff>=0.5.0

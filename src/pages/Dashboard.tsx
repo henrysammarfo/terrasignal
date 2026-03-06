@@ -2,14 +2,12 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { LogOut, Activity, Map, BarChart3, Settings } from "lucide-react";
+import { LogOut, Activity, Map, BarChart3, Settings, Satellite } from "lucide-react";
 import Logo from "@/components/Logo";
 import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
 import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
-import AgentRunner from "@/components/dashboard/AgentRunner";
-import AgentHistory from "@/components/dashboard/AgentHistory";
 
 type Tab = "feed" | "map" | "charts";
 
@@ -81,9 +79,13 @@ const Dashboard = () => {
 
           {tab === "feed" && (
             <>
-              <AgentRunner />
+              <div className="mb-6 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                <Satellite className="h-5 w-5 text-primary shrink-0" />
+                <p className="font-['Geist'] text-[13px] text-muted-foreground">
+                  Live intel is updated automatically by the TerraSignal pipeline (Sentinel-2, weather, Flock). New reports appear below as they are generated.
+                </p>
+              </div>
               <IntelFeed />
-              <AgentHistory />
             </>
           )}
           {tab === "map" && <SignalMap />}
