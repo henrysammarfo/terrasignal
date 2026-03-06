@@ -1,0 +1,34 @@
+# Run TerraSignal live agent on a schedule; push reports to Supabase webhook.
+# All authenticated users see the same live feed (SUPABASE_AGENT_USER_ID = system agent).
+# Add secrets in GitHub: Settings → Secrets and variables → Actions.
+
+name: Run TerraSignal agent
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # Every 6 hours
+  workflow_dispatch:        # Allow manual run from Actions tab
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run agent once
+        env:
+          FLOCK_API_KEY: ${{ secrets.FLOCK_API_KEY }}
+          SUPABASE_WEBHOOK_URL: ${{ secrets.SUPABASE_WEBHOOK_URL }}
+          SUPABASE_AGENT_USER_ID: ${{ secrets.SUPABASE_AGENT_USER_ID }}
+          WEBHOOK_API_KEY: ${{ secrets.WEBHOOK_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          USE_SENTINEL_DATA_API: "1"
+        run: python main.py run --once
