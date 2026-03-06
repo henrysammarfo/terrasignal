@@ -50,6 +50,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_config: {
+        Row: {
+          id: number
+          system_agent_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          system_agent_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          system_agent_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       crop_signals: {
         Row: {
           bbox: number[] | null
