@@ -8,6 +8,7 @@ import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
 import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Tab = "feed" | "map" | "charts";
 
