@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Navbar = () => {
   const { session } = useAuth();
@@ -16,7 +17,7 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-md border-b border-border/40"
+      className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-md border-b border-border/40"
     >
       <div className="flex items-center justify-between px-4 sm:px-8 py-4">
         <a href="/">
@@ -36,7 +37,8 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
           {/* Auth button (always visible) */}
           {session ? (
             <Link to="/dashboard" className="text-[14px] font-['Geist'] font-medium text-foreground px-5 py-2 rounded-full border border-border hover:bg-muted transition-colors">
