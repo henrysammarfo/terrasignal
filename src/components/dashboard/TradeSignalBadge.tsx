@@ -33,15 +33,15 @@ const TradeSignalBadge = ({ reportId, signal }: Props) => {
 
   if (!signal) {
     return (
-      <button
+      <span
         onClick={score}
-        disabled={loading}
-        className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-border text-[10px] font-['Geist'] font-medium text-muted-foreground hover:border-primary/30 hover:text-primary transition-colors"
+        role="button"
+        className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-border text-[10px] font-['Geist'] font-medium text-muted-foreground hover:border-primary/30 hover:text-primary transition-colors cursor-pointer"
         title="Generate AI trade signal"
       >
         {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
         Score
-      </button>
+      </span>
     );
   }
 
