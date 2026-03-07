@@ -8,6 +8,7 @@ import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
 import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Tab = "feed" | "map" | "charts";
 
@@ -35,6 +36,7 @@ const Dashboard = () => {
         <Logo />
         {/* Desktop actions */}
         <div className="hidden sm:flex items-center gap-3">
+          <ThemeToggle />
           <NotificationCenter />
           <button
             onClick={() => navigate("/settings")}
@@ -60,6 +62,7 @@ const Dashboard = () => {
         </div>
         {/* Mobile actions */}
         <div className="flex sm:hidden items-center gap-2">
+          <ThemeToggle />
           <NotificationCenter />
           <button
             onClick={() => setMobileMenu(!mobileMenu)}

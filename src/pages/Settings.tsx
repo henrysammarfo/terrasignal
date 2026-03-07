@@ -6,6 +6,8 @@ import Logo from "@/components/Logo";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AvatarUpload from "@/components/AvatarUpload";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const WEBHOOK_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/webhook-receiver`;
 
@@ -44,6 +46,7 @@ const Settings = () => {
   const { toast } = useToast();
 
   const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "api">("profile");
 
@@ -51,11 +54,12 @@ const Settings = () => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("display_name")
+      .select("display_name, avatar_url")
       .eq("user_id", user.id)
       .single()
       .then(({ data }) => {
         if (data?.display_name) setDisplayName(data.display_name);
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
       });
   }, [user]);
 
@@ -139,14 +143,17 @@ print(response.json())`;
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 bg-background/80 backdrop-blur-md border-b border-border">
         <Logo />
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 rounded-full border border-border px-3 sm:px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Back to Dashboard</span>
-          <span className="sm:hidden">Back</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 rounded-full border border-border px-3 sm:px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
+          </button>
+        </div>
       </div>
 
       <div className="mx-auto max-w-[720px] px-4 sm:px-6 pt-20 pb-16">
@@ -182,6 +189,17 @@ print(response.json())`;
 
           {activeTab === "profile" && (
             <div className="space-y-4">
+              {/* Avatar */}
+              {user && (
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <AvatarUpload
+                    userId={user.id}
+                    currentUrl={avatarUrl}
+                    onUploaded={(url) => setAvatarUrl(url)}
+                  />
+                </div>
+              )}
+
               {/* Display Name */}
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2 mb-4">
