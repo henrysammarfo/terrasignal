@@ -33,9 +33,7 @@ const AgentRunner = () => {
     const phaseTimer2 = setTimeout(() => setPhase("ingesting"), 7000);
 
     try {
-      const { data, error } = await supabase.functions.invoke("agent-scan", {
-        body: { user_id: user?.id },
-      });
+      const { data, error } = await supabase.functions.invoke("agent-scan");
 
       clearTimeout(phaseTimer1);
       clearTimeout(phaseTimer2);

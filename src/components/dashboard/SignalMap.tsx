@@ -3,6 +3,9 @@ import { useIntelReports } from "@/hooks/useIntelReports";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+const escHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+
 const severityColor: Record<string, string> = {
   critical: "#ef4444",
   high: "#f97316",
@@ -66,8 +69,8 @@ const SignalMap = () => {
       const sat = report.satellite_analyses?.[0];
       marker.bindPopup(`
         <div style="font-family: 'Geist', sans-serif; min-width: 200px;">
-          <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">${report.headline}</div>
-          <div style="font-size: 11px; color: #64748b;">${signal.region_name} · ${signal.crop_type || "—"}</div>
+          <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">${escHtml(report.headline)}</div>
+          <div style="font-size: 11px; color: #64748b;">${escHtml(signal.region_name)} · ${escHtml(signal.crop_type || "—")}</div>
           ${sat?.anomaly_score != null ? `<div style="font-size: 11px; margin-top: 6px;">Anomaly: <strong>${sat.anomaly_score.toFixed(1)}</strong></div>` : ""}
           ${report.confidence != null ? `<div style="font-size: 11px;">Confidence: <strong>${Math.round(report.confidence * 100)}%</strong></div>` : ""}
         </div>

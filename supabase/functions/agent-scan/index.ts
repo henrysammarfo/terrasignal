@@ -28,32 +28,49 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    // Authenticate the caller via JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const anonClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claimsData.claims.sub as string;
+
+    // Service role client for DB writes
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Parse optional body for user_id
-    let userId: string | null = null;
-    try {
-      const body = await req.json();
-      userId = body.user_id || null;
-    } catch { /* no body is fine */ }
-
     // Record scan start
-    let scanId: string | null = null;
-    if (userId) {
-      const { data: scanData } = await supabase
-        .from("agent_scans")
-        .insert({
-          user_id: userId,
-          status: "running",
-          regions_scanned: SCAN_TARGETS.length,
-        })
-        .select("id")
-        .single();
-      scanId = scanData?.id || null;
-    }
+    const { data: scanData } = await supabase
+      .from("agent_scans")
+      .insert({
+        user_id: userId,
+        status: "running",
+        regions_scanned: SCAN_TARGETS.length,
+      })
+      .select("id")
+      .single();
+    const scanId = scanData?.id || null;
 
     const results: any[] = [];
 
@@ -269,14 +286,12 @@ Make events realistic and varied in severity. At least one should be critical/hi
       }
 
       // Create notification
-      if (userId) {
-        await supabase.from("notifications").insert({
-          user_id: userId,
-          report_id: reportData.id,
-          title: `🛰️ Agent: ${rpt.headline}`,
-          message: rpt.market_implication,
-        });
-      }
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        report_id: reportData.id,
+        title: `🛰️ Agent: ${rpt.headline}`,
+        message: rpt.market_implication,
+      });
 
       // Forward high severity to OpenClaw
       if (event.severity === "high" || event.severity === "critical") {
@@ -328,18 +343,6 @@ Make events realistic and varied in severity. At least one should be critical/hi
     );
   } catch (error) {
     console.error("Agent scan error:", error);
-    // Try to mark scan as failed
-    try {
-      const body = await req.clone().json().catch(() => ({}));
-      if (body.user_id) {
-        const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-        await sb.from("agent_scans").update({
-          status: "failed",
-          completed_at: new Date().toISOString(),
-          error_message: error instanceof Error ? error.message : "Unknown error",
-        }).eq("user_id", body.user_id).eq("status", "running");
-      }
-    } catch { /* best effort */ }
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
