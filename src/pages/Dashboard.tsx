@@ -12,6 +12,10 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 type Tab = "feed" | "map" | "charts";
 
+const getGoogleAvatar = (user: any): string | null => {
+  return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+};
+
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -22,6 +26,9 @@ const Dashboard = () => {
     await signOut();
     navigate("/");
   };
+
+  const googleAvatar = getGoogleAvatar(user);
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email;
 
   const tabs: { id: Tab; label: string; shortLabel: string; icon: any }[] = [
     { id: "feed", label: "Intel Feed", shortLabel: "Feed", icon: Activity },
@@ -42,7 +49,11 @@ const Dashboard = () => {
             onClick={() => navigate("/settings")}
             className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
           >
-            <User className="w-3.5 h-3.5" />
+            {googleAvatar ? (
+              <img src={googleAvatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+            ) : (
+              <User className="w-3.5 h-3.5" />
+            )}
             Profile
           </button>
           <button
@@ -77,6 +88,16 @@ const Dashboard = () => {
       {mobileMenu && (
         <div className="fixed top-[57px] left-0 right-0 z-40 bg-background border-b border-border shadow-lg sm:hidden">
           <div className="flex flex-col p-3 gap-1">
+            {/* User info */}
+            {googleAvatar && (
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 mb-1">
+                <img src={googleAvatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                <div className="min-w-0">
+                  <p className="font-['Geist'] text-[14px] font-medium text-foreground truncate">{displayName}</p>
+                  <p className="font-['Geist'] text-[12px] text-muted-foreground truncate">{user?.email}</p>
+                </div>
+              </div>
+            )}
             <button
               onClick={() => { navigate("/settings"); setMobileMenu(false); }}
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-['Geist'] text-foreground hover:bg-muted transition-colors"
@@ -106,9 +127,16 @@ const Dashboard = () => {
       <div className="mx-auto max-w-[1000px] px-4 sm:px-6 pt-20 pb-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="flex items-end justify-between mb-6">
-            <div>
-              <h1 className="font-['Geist'] font-medium text-[22px] sm:text-[28px] tracking-[-0.03em] text-foreground">Dashboard</h1>
-              <p className="font-['Geist'] text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 truncate max-w-[260px] sm:max-w-none">Welcome, {user?.email}</p>
+            <div className="flex items-center gap-3">
+              {googleAvatar && (
+                <img src={googleAvatar} alt="" className="w-10 h-10 rounded-full object-cover border border-border hidden sm:block" />
+              )}
+              <div>
+                <h1 className="font-['Geist'] font-medium text-[22px] sm:text-[28px] tracking-[-0.03em] text-foreground">Dashboard</h1>
+                <p className="font-['Geist'] text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 truncate max-w-[260px] sm:max-w-none">
+                  Welcome, {displayName}
+                </p>
+              </div>
             </div>
           </div>
 
