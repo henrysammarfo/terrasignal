@@ -6,6 +6,7 @@ import Logo from "@/components/Logo";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AvatarUpload from "@/components/AvatarUpload";
 
 const WEBHOOK_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/webhook-receiver`;
 
@@ -44,6 +45,7 @@ const Settings = () => {
   const { toast } = useToast();
 
   const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "api">("profile");
 
@@ -51,11 +53,12 @@ const Settings = () => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("display_name")
+      .select("display_name, avatar_url")
       .eq("user_id", user.id)
       .single()
       .then(({ data }) => {
         if (data?.display_name) setDisplayName(data.display_name);
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
       });
   }, [user]);
 
@@ -182,6 +185,17 @@ print(response.json())`;
 
           {activeTab === "profile" && (
             <div className="space-y-4">
+              {/* Avatar */}
+              {user && (
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <AvatarUpload
+                    userId={user.id}
+                    currentUrl={avatarUrl}
+                    onUploaded={(url) => setAvatarUrl(url)}
+                  />
+                </div>
+              )}
+
               {/* Display Name */}
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2 mb-4">
