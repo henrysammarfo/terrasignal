@@ -8,6 +8,8 @@ import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
 import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
+import CommodityTicker from "@/components/dashboard/CommodityTicker";
+import MarketChat from "@/components/dashboard/MarketChat";
 import ThemeToggle from "@/components/ThemeToggle";
 
 type Tab = "feed" | "map" | "charts";
@@ -88,7 +90,6 @@ const Dashboard = () => {
       {mobileMenu && (
         <div className="fixed top-[57px] left-0 right-0 z-40 bg-background border-b border-border shadow-lg sm:hidden">
           <div className="flex flex-col p-3 gap-1">
-            {/* User info */}
             {googleAvatar && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 mb-1">
                 <img src={googleAvatar} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -126,7 +127,7 @@ const Dashboard = () => {
       {/* Content */}
       <div className="mx-auto max-w-[1000px] px-4 sm:px-6 pt-20 pb-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div className="flex items-end justify-between mb-6">
+          <div className="flex items-end justify-between mb-4">
             <div className="flex items-center gap-3">
               {googleAvatar && (
                 <img src={googleAvatar} alt="" className="w-10 h-10 rounded-full object-cover border border-border hidden sm:block" />
@@ -138,6 +139,12 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Commodity Prices Ticker */}
+          <div className="mb-6">
+            <p className="font-['Geist'] text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">Markets</p>
+            <CommodityTicker />
           </div>
 
           {/* Tabs */}
@@ -162,7 +169,7 @@ const Dashboard = () => {
               <div className="mb-6 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
                 <Satellite className="h-5 w-5 text-primary shrink-0" />
                 <p className="font-['Geist'] text-[12px] sm:text-[13px] text-muted-foreground">
-                  Live intel is updated automatically by the TerraSignal pipeline. New reports appear below as they are generated.
+                  Live intel is updated automatically by the TerraSignal agent. New reports trigger real-time notifications.
                 </p>
               </div>
               <IntelFeed />
@@ -172,6 +179,9 @@ const Dashboard = () => {
           {tab === "charts" && <SignalCharts />}
         </motion.div>
       </div>
+
+      {/* AI Chat */}
+      <MarketChat />
     </div>
   );
 };
