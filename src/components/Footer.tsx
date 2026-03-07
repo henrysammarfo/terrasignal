@@ -26,14 +26,14 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-foreground text-background px-6 pt-20 pb-10">
+    <footer className="bg-primary text-primary-foreground px-6 pt-20 pb-10">
       <div className="mx-auto max-w-[1200px]">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
           {/* Brand + Newsletter */}
           <div className="md:col-span-2 flex flex-col gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-background flex items-center justify-center">
-                <span className="text-foreground text-xs font-bold font-['Geist']">T</span>
+              <div className="w-7 h-7 rounded-lg bg-primary-foreground flex items-center justify-center">
+                <span className="text-primary text-xs font-bold font-['Geist']">T</span>
               </div>
               <span className="text-[17px] font-semibold font-['Geist'] tracking-[-0.02em]">
                 TerraSignal
@@ -49,11 +49,11 @@ const Footer = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email"
                 maxLength={255}
-                className="flex-1 rounded-full bg-background/10 border border-background/15 px-4 py-2.5 text-[13px] font-['Geist'] text-background placeholder:text-background/40 outline-none focus:border-background/30 transition-colors"
+                className="flex-1 rounded-full bg-primary-foreground/10 border border-primary-foreground/15 px-4 py-2.5 text-[13px] font-['Geist'] text-primary-foreground placeholder:text-primary-foreground/40 outline-none focus:border-primary-foreground/30 transition-colors"
               />
               <button
                 type="submit"
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-background text-foreground hover:opacity-90 transition-opacity"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-foreground text-primary hover:opacity-90 transition-opacity"
               >
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -83,7 +83,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-background/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border-t border-primary-foreground/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[12px] font-['Geist'] opacity-30">
             © 2026 TerraSignal. All rights reserved.
           </p>

@@ -50,6 +50,8 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "api">("profile");
 
+  const googleAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -62,6 +64,9 @@ const Settings = () => {
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
       });
   }, [user]);
+
+  // Use custom avatar, then Google avatar, then null
+  const effectiveAvatar = avatarUrl || googleAvatar;
 
   const saveProfile = async () => {
     if (!user) return;
@@ -189,9 +194,24 @@ print(response.json())`;
 
           {activeTab === "profile" && (
             <div className="space-y-4">
-              {/* Avatar */}
+              {/* Avatar section with Google fallback */}
               {user && (
                 <div className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-4 mb-4">
+                    {effectiveAvatar && (
+                      <img
+                        src={effectiveAvatar}
+                        alt="Profile"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-border"
+                      />
+                    )}
+                    <div>
+                      <h2 className="font-['Geist'] font-medium text-[15px] text-foreground">Profile Photo</h2>
+                      {googleAvatar && !avatarUrl && (
+                        <p className="font-['Geist'] text-[12px] text-muted-foreground mt-0.5">Using your Google profile photo</p>
+                      )}
+                    </div>
+                  </div>
                   <AvatarUpload
                     userId={user.id}
                     currentUrl={avatarUrl}

@@ -44,7 +44,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-          className="font-['Geist'] text-[15px] sm:text-[18px] leading-[1.6] text-[#373a46] opacity-80 max-w-[554px]"
+          className="font-['Geist'] text-[15px] sm:text-[18px] leading-[1.6] text-muted-foreground max-w-[554px]"
         >
           TerraSignal delivers real-time commodity intelligence — monitoring
           news, satellite imagery, and market signals so your team can act
@@ -59,26 +59,13 @@ const HeroSection = () => {
           className="flex flex-col gap-4 max-w-[520px]"
         >
           {/* Input Container */}
-          <div
-            className="flex flex-col sm:flex-row items-stretch sm:items-center rounded-[20px] sm:rounded-[40px] bg-[#fcfcfc] border border-border px-2 py-1.5 gap-2 sm:gap-0"
-            style={{
-              boxShadow: "0px 10px 40px 5px rgba(194,194,194,0.25)",
-            }}
-          >
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center rounded-[20px] sm:rounded-[40px] bg-card border border-border px-2 py-1.5 gap-2 sm:gap-0 shadow-lg">
             <input
               type="email"
               placeholder="Enter your email address"
               className="flex-1 bg-transparent px-4 sm:px-5 py-3 text-[15px] font-['Geist'] text-foreground placeholder:text-muted-foreground outline-none"
             />
-            <button
-              className="rounded-[32px] px-6 py-3 text-[14px] font-medium font-['Geist'] text-white whitespace-nowrap"
-              style={{
-                background:
-                  "linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #111111 100%)",
-                boxShadow:
-                  "inset -4px -6px 25px 0px rgba(201,201,201,0.08), inset 4px 4px 10px 0px rgba(29,29,29,0.24)",
-              }}
-            >
+            <button className="rounded-[32px] px-6 py-3 text-[14px] font-medium font-['Geist'] bg-primary text-primary-foreground hover:opacity-90 transition-opacity whitespace-nowrap">
               Create Free Account
             </button>
           </div>
