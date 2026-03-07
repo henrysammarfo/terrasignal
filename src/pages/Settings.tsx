@@ -142,18 +142,18 @@ print(response.json())`;
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 bg-background/80 backdrop-blur-md border-b border-border">
+        <Logo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Logo />
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 rounded-full border border-border px-3 sm:px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
+          </button>
         </div>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 rounded-full border border-border px-3 sm:px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Back to Dashboard</span>
-          <span className="sm:hidden">Back</span>
-        </button>
       </div>
 
       <div className="mx-auto max-w-[720px] px-4 sm:px-6 pt-20 pb-16">
