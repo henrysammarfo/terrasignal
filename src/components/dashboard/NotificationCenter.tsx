@@ -28,11 +28,11 @@ const NotificationCenter = () => {
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             {/* Mobile: bottom sheet style, Desktop: dropdown */}
             <motion.div
-              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              initial={{ opacity: 0, y: -8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              exit={{ opacity: 0, y: -8, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="fixed sm:absolute inset-x-3 sm:inset-x-auto bottom-3 sm:bottom-auto sm:right-0 sm:top-12 z-50 sm:w-[380px] max-h-[70vh] sm:max-h-[480px] overflow-auto rounded-2xl sm:rounded-xl border border-border bg-card shadow-2xl sm:shadow-lg"
+              className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[60px] sm:top-12 z-50 sm:w-[380px] max-h-[calc(100vh-80px)] sm:max-h-[480px] overflow-auto rounded-2xl sm:rounded-xl border border-border bg-card shadow-2xl sm:shadow-lg"
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card z-10 rounded-t-2xl sm:rounded-t-xl">
                 <h3 className="font-['Geist'] font-medium text-[14px] text-foreground">
