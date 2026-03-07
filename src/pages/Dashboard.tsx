@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { LogOut, Activity, Map, BarChart3, Settings, Satellite, Menu, X, User, Eye } from "lucide-react";
+import { LogOut, Activity, Map, BarChart3, Settings, Satellite, Menu, X, User, Eye, LayoutDashboard, Download } from "lucide-react";
 import Logo from "@/components/Logo";
 import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
@@ -11,9 +11,11 @@ import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import CommodityTicker from "@/components/dashboard/CommodityTicker";
 import MarketChat from "@/components/dashboard/MarketChat";
 import Watchlist from "@/components/dashboard/Watchlist";
+import DashboardOverview from "@/components/dashboard/DashboardOverview";
+import ExportButtons from "@/components/dashboard/ExportButtons";
 import ThemeToggle from "@/components/ThemeToggle";
 
-type Tab = "feed" | "map" | "charts" | "watchlist";
+type Tab = "overview" | "feed" | "map" | "charts" | "watchlist";
 
 const getGoogleAvatar = (user: any): string | null => {
   return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
@@ -22,7 +24,7 @@ const getGoogleAvatar = (user: any): string | null => {
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>("feed");
+  const [tab, setTab] = useState<Tab>("overview");
   const [mobileMenu, setMobileMenu] = useState(false);
 
   const handleSignOut = async () => {
@@ -34,6 +36,7 @@ const Dashboard = () => {
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email;
 
   const tabs: { id: Tab; label: string; shortLabel: string; icon: any }[] = [
+    { id: "overview", label: "Overview", shortLabel: "Home", icon: LayoutDashboard },
     { id: "feed", label: "Intel Feed", shortLabel: "Feed", icon: Activity },
     { id: "map", label: "Signal Map", shortLabel: "Map", icon: Map },
     { id: "charts", label: "Charts", shortLabel: "Charts", icon: BarChart3 },
@@ -149,23 +152,29 @@ const Dashboard = () => {
             <CommodityTicker />
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-1 mb-6 p-1 rounded-lg bg-muted w-fit">
-            {tabs.map(({ id, label, shortLabel, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => setTab(id)}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-md text-[13px] font-medium font-['Geist'] transition-all ${
-                  tab === id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{label}</span>
-                <span className="sm:hidden">{shortLabel}</span>
-              </button>
-            ))}
+          {/* Tabs + Export */}
+          <div className="flex items-center justify-between mb-6 gap-3">
+            <div className="flex gap-1 p-1 rounded-lg bg-muted w-fit overflow-x-auto">
+              {tabs.map(({ id, label, shortLabel, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-md text-[13px] font-medium font-['Geist'] transition-all whitespace-nowrap ${
+                    tab === id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{label}</span>
+                  <span className="sm:hidden">{shortLabel}</span>
+                </button>
+              ))}
+            </div>
+            <div className="hidden sm:block shrink-0">
+              <ExportButtons />
+            </div>
           </div>
 
+          {tab === "overview" && <DashboardOverview />}
           {tab === "feed" && (
             <>
               <div className="mb-6 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
