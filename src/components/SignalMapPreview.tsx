@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface Region {
@@ -107,11 +107,11 @@ const SignalMapPreview = () => {
                   weight: 2,
                 }}
               >
-                <Tooltip direction="top" offset={[0, -10]}>
+                <Popup>
                   <span className="font-['Geist'] text-[13px] font-medium">
                     {r.name} — {r.count} signal{r.count > 1 ? "s" : ""}
                   </span>
-                </Tooltip>
+                </Popup>
               </CircleMarker>
             ))}
           </MapContainer>
