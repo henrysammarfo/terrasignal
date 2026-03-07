@@ -1,27 +1,44 @@
 import { useEffect, useState, useRef } from "react";
-import { motion } from "motion/react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CommodityPrice {
   symbol: string;
   name: string;
   price: number;
   change: number;
+  changePct: number;
 }
 
 const FALLBACK_DATA: CommodityPrice[] = [
-  { symbol: "ZW", name: "Wheat", price: 542.25, change: -1.2 },
-  { symbol: "ZC", name: "Corn", price: 435.50, change: 0.8 },
-  { symbol: "ZS", name: "Soybeans", price: 1142.75, change: -0.3 },
-  { symbol: "CC", name: "Cocoa", price: 8245.00, change: 2.1 },
-  { symbol: "KC", name: "Coffee", price: 248.30, change: 1.5 },
-  { symbol: "CT", name: "Cotton", price: 72.45, change: -0.6 },
-  { symbol: "SB", name: "Sugar", price: 19.82, change: 0.4 },
-  { symbol: "CL", name: "Crude Oil", price: 71.20, change: -0.9 },
+  { symbol: "ZW=F", name: "Wheat", price: 542.25, change: -6.5, changePct: -1.2 },
+  { symbol: "ZC=F", name: "Corn", price: 435.50, change: 3.5, changePct: 0.8 },
+  { symbol: "ZS=F", name: "Soybeans", price: 1142.75, change: -3.4, changePct: -0.3 },
+  { symbol: "CC=F", name: "Cocoa", price: 8245.00, change: 173.1, changePct: 2.1 },
+  { symbol: "KC=F", name: "Coffee", price: 248.30, change: 3.7, changePct: 1.5 },
+  { symbol: "CT=F", name: "Cotton", price: 72.45, change: -0.4, changePct: -0.6 },
+  { symbol: "SB=F", name: "Sugar #11", price: 19.82, change: 0.08, changePct: 0.4 },
+  { symbol: "ZR=F", name: "Rough Rice", price: 15.80, change: -0.14, changePct: -0.9 },
 ];
 
 const CommodityTickerLanding = () => {
-  const [prices] = useState<CommodityPrice[]>(FALLBACK_DATA);
+  const [prices, setPrices] = useState<CommodityPrice[]>(FALLBACK_DATA);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("commodity-prices");
+        if (!error && data?.success && Array.isArray(data.data)) {
+          setPrices(data.data);
+        }
+      } catch {
+        // keep fallback
+      }
+    };
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -52,8 +69,8 @@ const CommodityTickerLanding = () => {
             <span className="text-[13px] font-['Geist'] font-medium text-foreground">
               ${c.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
-            <span className={`text-[12px] font-['Geist'] font-medium ${c.change >= 0 ? "text-green-600" : "text-red-500"}`}>
-              {c.change >= 0 ? "+" : ""}{c.change}%
+            <span className={`text-[12px] font-['Geist'] font-medium ${c.changePct >= 0 ? "text-green-600" : "text-red-500"}`}>
+              {c.changePct >= 0 ? "+" : ""}{c.changePct}%
             </span>
           </div>
         ))}
