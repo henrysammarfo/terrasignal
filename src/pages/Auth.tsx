@@ -44,10 +44,24 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (error) toast.error(error.message);
+    const isLovableDomain = window.location.hostname.includes("lovable");
+    
+    if (isLovableDomain) {
+      // Use Lovable's managed OAuth on Lovable domains
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (error) toast.error(error.message);
+    } else {
+      // Use standard Supabase OAuth on Vercel / custom domains
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) toast.error(error.message);
+    }
   };
 
   const handleForgotPassword = async () => {
