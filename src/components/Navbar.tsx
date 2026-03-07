@@ -39,15 +39,19 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
-          {/* Auth button (always visible) */}
           {session ? (
             <Link to="/dashboard" className="text-[14px] font-['Geist'] font-medium text-foreground px-5 py-2 rounded-full border border-border hover:bg-muted transition-colors">
               Dashboard
             </Link>
           ) : (
-            <Link to="/auth" className="text-[14px] font-['Geist'] font-medium text-foreground px-5 py-2 rounded-full border border-border hover:bg-muted transition-colors">
-              Sign In
-            </Link>
+            <>
+              <Link to="/auth?mode=signup" className="hidden sm:inline-flex text-[14px] font-['Geist'] font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
+                Sign up
+              </Link>
+              <Link to="/auth" className="text-[14px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-5 py-2 rounded-full hover:opacity-90 transition-opacity">
+                Sign in
+              </Link>
+            </>
           )}
 
           {/* Mobile hamburger */}

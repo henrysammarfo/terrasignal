@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import FeaturesSection from "@/components/FeaturesSection";
 import LiveIntelPreview from "@/components/LiveIntelPreview";
 import CommodityTickerLanding from "@/components/CommodityTickerLanding";
+import SignalMapPreview from "@/components/SignalMapPreview";
 import Footer from "@/components/Footer";
 import PricingSection from "@/components/PricingSection";
 import CTABanner from "@/components/CTABanner";
@@ -15,6 +16,7 @@ const Index = () => {
       <CommodityTickerLanding />
       <FeaturesSection />
       <LiveIntelPreview />
+      <SignalMapPreview />
       <PricingSection />
       <CTABanner />
       <Footer />

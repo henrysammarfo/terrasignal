@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion } from "motion/react";
+import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
 
 const Auth = () => {
   const { session, loading } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -87,7 +89,11 @@ const Auth = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-[400px]"
       >
-        {/* Logo */}
+        {/* Back + Logo */}
+        <Link to="/" className="inline-flex items-center gap-1.5 text-[13px] font-['Geist'] text-muted-foreground hover:text-foreground transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4" />
+          Back to home
+        </Link>
         <div className="mb-10">
           <Logo />
         </div>
