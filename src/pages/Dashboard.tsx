@@ -36,6 +36,7 @@ const Dashboard = () => {
         <Logo />
         {/* Desktop actions */}
         <div className="hidden sm:flex items-center gap-3">
+          <ThemeToggle />
           <NotificationCenter />
           <button
             onClick={() => navigate("/settings")}
@@ -61,6 +62,7 @@ const Dashboard = () => {
         </div>
         {/* Mobile actions */}
         <div className="flex sm:hidden items-center gap-2">
+          <ThemeToggle />
           <NotificationCenter />
           <button
             onClick={() => setMobileMenu(!mobileMenu)}
