@@ -1,6 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
 import { useTheme } from "next-themes";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -23,59 +22,14 @@ const severityColor: Record<string, string> = {
 const LIGHT_TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 const DARK_TILES = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
-/** Swaps tile layer when theme changes */
-const ThemeTileLayer = () => {
-  const { resolvedTheme } = useTheme();
-  const map = useMap();
-
-  useEffect(() => {
-    const url = resolvedTheme === "dark" ? DARK_TILES : LIGHT_TILES;
-    // Remove existing tile layers, add new one
-    map.eachLayer((layer) => {
-      if (layer instanceof L.TileLayer) map.removeLayer(layer);
-    });
-    L.tileLayer(url).addTo(map);
-  }, [resolvedTheme, map]);
-
-  return null;
-};
-
-/** Hover label using native Leaflet tooltip (bypasses react-leaflet Context.Consumer bug) */
-const HoverMarker = ({ region }: { region: Region }) => {
-  const color = severityColor[region.severity] || severityColor.medium;
-
-  const bindTooltip = useCallback(
-    (marker: L.CircleMarker | null) => {
-      if (!marker) return;
-      const label = `${region.name} — ${region.count} signal${region.count > 1 ? "s" : ""}`;
-      marker.unbindTooltip();
-      marker.bindTooltip(label, {
-        direction: "top",
-        offset: [0, -8],
-        className: "signal-map-tooltip",
-      });
-    },
-    [region]
-  );
-
-  return (
-    <CircleMarker
-      ref={bindTooltip}
-      center={[region.lat, region.lng]}
-      radius={Math.min(8 + region.count * 2, 22)}
-      pathOptions={{
-        color,
-        fillColor: color,
-        fillOpacity: 0.35,
-        weight: 2,
-      }}
-    />
-  );
-};
-
 const SignalMapPreview = () => {
   const [regions, setRegions] = useState<Region[]>([]);
+  const mapRef = useRef<L.Map | null>(null);
+  const tileRef = useRef<L.TileLayer | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
 
+  // Fetch regions
   useEffect(() => {
     const fetchRegions = async () => {
       const { data } = await supabase
@@ -124,6 +78,67 @@ const SignalMapPreview = () => {
     fetchRegions();
   }, []);
 
+  // Init map
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      center: [20, 0],
+      zoom: 2,
+      scrollWheelZoom: false,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    const url = resolvedTheme === "dark" ? DARK_TILES : LIGHT_TILES;
+    tileRef.current = L.tileLayer(url).addTo(map);
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      tileRef.current = null;
+    };
+  }, []);
+
+  // Swap tiles on theme change
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const url = resolvedTheme === "dark" ? DARK_TILES : LIGHT_TILES;
+    if (tileRef.current) tileRef.current.setUrl(url);
+  }, [resolvedTheme]);
+
+  // Draw markers
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const markers: L.CircleMarker[] = [];
+
+    regions.forEach((r) => {
+      const color = severityColor[r.severity] || severityColor.medium;
+      const marker = L.circleMarker([r.lat, r.lng], {
+        radius: Math.min(8 + r.count * 2, 22),
+        color,
+        fillColor: color,
+        fillOpacity: 0.35,
+        weight: 2,
+      }).addTo(map);
+
+      marker.bindTooltip(`${r.name} — ${r.count} signal${r.count > 1 ? "s" : ""}`, {
+        direction: "top",
+        offset: [0, -8],
+        className: "signal-map-tooltip",
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach((m) => m.remove());
+    };
+  }, [regions]);
+
   return (
     <section className="py-20 px-4 sm:px-8">
       <style>{`
@@ -152,24 +167,12 @@ const SignalMapPreview = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl overflow-hidden border border-border shadow-sm" style={{ height: 420 }}>
-          <MapContainer
-            center={[20, 0]}
-            zoom={2}
-            scrollWheelZoom={false}
-            zoomControl={false}
-            attributionControl={false}
-            className="w-full h-full"
-            style={{ background: "hsl(var(--muted))" }}
-          >
-            <ThemeTileLayer />
-            {regions.map((r) => (
-              <HoverMarker key={r.name} region={r} />
-            ))}
-          </MapContainer>
-        </div>
+        <div
+          ref={containerRef}
+          className="rounded-2xl overflow-hidden border border-border shadow-sm"
+          style={{ height: 420, background: "hsl(var(--muted))" }}
+        />
 
-        {/* Legend */}
         <div className="flex items-center justify-center gap-6 mt-5">
           {Object.entries(severityColor).map(([label, color]) => (
             <div key={label} className="flex items-center gap-1.5">
