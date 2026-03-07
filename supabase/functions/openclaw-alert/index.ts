@@ -19,6 +19,15 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Validate internal shared secret
+  const secret = Deno.env.get("OPENCLAW_INTERNAL_SECRET");
+  if (!secret || req.headers.get("x-internal-secret") !== secret) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const openclawUrl = Deno.env.get("OPENCLAW_GATEWAY_URL");
     if (!openclawUrl) {
