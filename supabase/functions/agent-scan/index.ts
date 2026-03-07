@@ -301,7 +301,7 @@ Make events realistic and varied in severity. At least one should be critical/hi
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              "x-internal-secret": Deno.env.get("OPENCLAW_INTERNAL_SECRET") || "",
             },
             body: JSON.stringify({ report_id: reportData.id }),
           });
