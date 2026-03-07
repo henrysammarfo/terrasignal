@@ -19,7 +19,7 @@ const HeroSection = () => {
           />
         </video>
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[26.416%] from-[rgba(255,255,255,0)] to-[66.943%] to-white" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[26.416%] from-transparent to-[66.943%] to-background" />
       </div>
 
       {/* Content */}
