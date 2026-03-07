@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const apiKey = req.headers.get("x-api-key");
     const expectedKey = Deno.env.get("WEBHOOK_API_KEY");
 
-    if (expectedKey && apiKey !== expectedKey) {
+    if (!expectedKey || apiKey !== expectedKey) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
