@@ -10,7 +10,12 @@ const Navbar = () => {
   const { session } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const navLinks = ["Features", "Pricing", "About"];
+  const navLinks = [
+    { label: "Home", href: "/" },
+    { label: "Features", href: "#features" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Contact us", href: "#contact" },
+  ];
 
   return (
     <motion.nav
@@ -19,36 +24,47 @@ const Navbar = () => {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-md border-b border-border/40"
     >
-      <div className="flex items-center justify-between px-4 sm:px-8 py-4">
-        <a href="/">
+      <div className="flex items-center justify-between px-4 sm:px-8 py-3.5 max-w-7xl mx-auto">
+        {/* Logo */}
+        <a href="/" className="shrink-0">
           <Logo />
         </a>
 
-        {/* Desktop Nav */}
+        {/* Desktop center nav */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
-              key={link}
-              href={`#${link.toLowerCase()}`}
+              key={link.label}
+              href={link.href}
               className="text-[14px] font-['Geist'] font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              {link}
+              {link.label}
             </a>
           ))}
         </div>
 
+        {/* Right side */}
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
           {session ? (
-            <Link to="/dashboard" className="text-[14px] font-['Geist'] font-medium text-foreground px-5 py-2 rounded-full border border-border hover:bg-muted transition-colors">
+            <Link
+              to="/dashboard"
+              className="text-[14px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-5 py-2 rounded-full hover:opacity-90 transition-opacity"
+            >
               Dashboard
             </Link>
           ) : (
             <>
-              <Link to="/auth?mode=signup" className="hidden sm:inline-flex text-[14px] font-['Geist'] font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
+              <Link
+                to="/auth?mode=signup"
+                className="hidden sm:inline-flex text-[14px] font-['Geist'] font-medium text-foreground hover:text-foreground/80 transition-colors px-4 py-2"
+              >
                 Sign up
               </Link>
-              <Link to="/auth" className="text-[14px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-5 py-2 rounded-full hover:opacity-90 transition-opacity">
+              <Link
+                to="/auth"
+                className="text-[14px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity shadow-sm"
+              >
                 Sign in
               </Link>
             </>
@@ -76,12 +92,12 @@ const Navbar = () => {
             <div className="flex flex-col gap-1 px-4 py-3">
               {navLinks.map((link) => (
                 <a
-                  key={link}
-                  href={`#${link.toLowerCase()}`}
+                  key={link.label}
+                  href={link.href}
                   onClick={() => setMobileOpen(false)}
                   className="text-[14px] font-['Geist'] font-medium text-muted-foreground hover:text-foreground transition-colors py-2 px-2 rounded-lg hover:bg-muted"
                 >
-                  {link}
+                  {link.label}
                 </a>
               ))}
             </div>
