@@ -37,6 +37,22 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Deduplication: skip if same event_url already exists for this user
+    if (signal.event_url) {
+      const { data: existing } = await supabase
+        .from("crop_signals")
+        .select("id")
+        .eq("user_id", user_id)
+        .eq("event_url", signal.event_url)
+        .maybeSingle();
+      if (existing) {
+        return new Response(
+          JSON.stringify({ success: true, deduplicated: true, existing_signal_id: existing.id }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // Insert crop signal
     const { data: signalData, error: signalError } = await supabase
       .from("crop_signals")
