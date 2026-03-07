@@ -1,15 +1,9 @@
-import { useState } from "react";
 import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 const CTABanner = () => {
-  const [email, setEmail] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    setEmail("");
-  };
+  const navigate = useNavigate();
 
   return (
     <section className="relative z-10 bg-background px-6 py-20">
@@ -21,35 +15,23 @@ const CTABanner = () => {
         className="mx-auto max-w-[1200px] rounded-3xl bg-foreground text-background px-8 py-20 md:px-20 text-center flex flex-col items-center"
       >
         <h2 className="font-['Geist'] font-medium text-[28px] sm:text-[38px] md:text-[48px] leading-[1.1] tracking-[-0.03em] mb-4 max-w-[600px]">
-          Start making{" "}
+          Start receiving{" "}
           <span className="font-['Instrument_Serif'] italic text-[34px] sm:text-[44px] md:text-[54px]">
-            smarter
+            live intel
           </span>{" "}
-          moves today
+          today
         </h2>
         <p className="font-['Geist'] text-[16px] leading-[1.6] opacity-50 max-w-[440px] mb-10">
-          Join thousands of commodity professionals using TerraSignal to stay ahead of the market.
+          Free during open beta. Real satellite data, real trade signals,
+          real market intelligence — delivered autonomously.
         </p>
-        <form
-          onSubmit={handleSubmit}
-          className="flex items-center w-full max-w-[460px] rounded-full bg-background/10 border border-background/15 p-1.5"
+        <button
+          onClick={() => navigate("/auth")}
+          className="flex items-center gap-2 rounded-full bg-background text-foreground px-8 py-3.5 text-[14px] font-medium font-['Geist'] hover:opacity-90 transition-opacity"
         >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            maxLength={255}
-            className="flex-1 bg-transparent px-5 py-2.5 text-[14px] font-['Geist'] text-background placeholder:text-background/35 outline-none"
-          />
-          <button
-            type="submit"
-            className="flex items-center gap-2 rounded-full bg-background text-foreground px-5 py-2.5 text-[13px] font-medium font-['Geist'] hover:opacity-90 transition-opacity whitespace-nowrap"
-          >
-            Get Started
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </form>
+          Create Free Account
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </motion.div>
     </section>
   );

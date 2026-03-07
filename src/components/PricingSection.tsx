@@ -1,49 +1,54 @@
 import { motion } from "motion/react";
-import { Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Check, Zap } from "lucide-react";
 
 const tiers = [
   {
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    description: "For individuals exploring commodity signals.",
-    cta: "Get Started",
-    highlighted: false,
+    name: "Open Beta",
+    price: "Free",
+    period: "",
+    description: "Full access during our public beta — no credit card needed.",
+    cta: "Join the Beta",
+    highlighted: true,
     features: [
-      "5 commodity watchlists",
-      "Daily market digest",
-      "Basic news monitoring",
-      "Community support",
+      "Unlimited intel reports",
+      "Real-time satellite analysis",
+      "Trade signal generation",
+      "Slack & dashboard alerts",
+      "Watchlist with custom alerts",
+      "Full API & webhook access",
     ],
   },
   {
     name: "Pro",
     price: "$49",
     period: "/mo",
-    description: "For teams that need real-time edge.",
-    cta: "Start Free Trial",
-    highlighted: true,
+    description: "Priority processing and advanced features. Coming soon.",
+    cta: "Coming Soon",
+    highlighted: false,
+    disabled: true,
     features: [
-      "Unlimited watchlists",
-      "Real-time alerts & signals",
-      "Satellite imagery access",
-      "API access",
+      "Everything in Beta",
+      "Custom RSS feed sources",
+      "Higher scan frequency",
       "Priority support",
-      "Custom dashboards",
+      "Team workspaces",
+      "PDF export & scheduling",
     ],
   },
   {
     name: "Enterprise",
     price: "Custom",
     period: "",
-    description: "For orgs with complex data needs.",
-    cta: "Contact Sales",
+    description: "For orgs with complex data needs and compliance requirements.",
+    cta: "Contact Us",
     highlighted: false,
+    disabled: true,
     features: [
       "Everything in Pro",
-      "Dedicated account manager",
+      "Dedicated infrastructure",
       "Custom data integrations",
-      "SSO & advanced security",
+      "SSO & audit logs",
       "SLA guarantees",
       "On-premise deployment",
     ],
@@ -51,6 +56,8 @@ const tiers = [
 ];
 
 const PricingSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative z-10 bg-muted/30 py-28 px-6">
       <div className="mx-auto max-w-[1200px]">
@@ -66,12 +73,14 @@ const PricingSection = () => {
             Pricing
           </p>
           <h2 className="font-['Geist'] font-medium text-[28px] sm:text-[36px] md:text-[42px] leading-[1.15] tracking-[-0.03em] text-foreground">
-            Plans that{" "}
+            Currently in{" "}
             <span className="font-['Instrument_Serif'] italic text-[34px] sm:text-[42px] md:text-[48px]">
-              scale
-            </span>{" "}
-            with you
+              open beta
+            </span>
           </h2>
+          <p className="font-['Geist'] text-[15px] text-muted-foreground mt-3 max-w-[480px] mx-auto">
+            Full platform access is free during our beta period. No credit card required.
+          </p>
         </motion.div>
 
         {/* Cards */}
@@ -90,8 +99,8 @@ const PricingSection = () => {
               }`}
             >
               {tier.highlighted && (
-                <span className="absolute -top-3 left-8 rounded-full bg-background text-foreground text-[11px] font-semibold font-['Geist'] uppercase tracking-[0.08em] px-3 py-1">
-                  Most Popular
+                <span className="absolute -top-3 left-8 rounded-full bg-background text-foreground text-[11px] font-semibold font-['Geist'] uppercase tracking-[0.08em] px-3 py-1 flex items-center gap-1">
+                  <Zap className="w-3 h-3" /> Active Now
                 </span>
               )}
 
@@ -144,7 +153,13 @@ const PricingSection = () => {
               </ul>
 
               <button
-                className={`w-full rounded-full py-3 text-[14px] font-medium font-['Geist'] transition-opacity hover:opacity-90 ${
+                onClick={() => !tier.disabled && navigate("/auth")}
+                disabled={tier.disabled}
+                className={`w-full rounded-full py-3 text-[14px] font-medium font-['Geist'] transition-opacity ${
+                  tier.disabled
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:opacity-90"
+                } ${
                   tier.highlighted
                     ? "bg-background text-foreground"
                     : "bg-foreground text-background"
