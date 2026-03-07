@@ -20,6 +20,7 @@ const Index = () => {
       <SignalMapPreview />
       <PricingSection />
       <CTABanner />
+      <ContactSection />
       <Footer />
     </div>
   );
