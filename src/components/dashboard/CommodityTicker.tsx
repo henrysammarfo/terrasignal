@@ -74,13 +74,16 @@ const CommodityTicker = () => {
         >
           <div className="flex items-center justify-between mb-1">
             <span className="font-['Geist'] text-[11px] font-medium text-muted-foreground">{c.name}</span>
-            {c.change > 0 ? (
-              <TrendingUp className="w-3 h-3 text-green-600" />
-            ) : c.change < 0 ? (
-              <TrendingDown className="w-3 h-3 text-red-500" />
-            ) : (
-              <Minus className="w-3 h-3 text-muted-foreground" />
-            )}
+            <div className="flex items-center gap-1">
+              {(c as any).live && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" title="Live data" />}
+              {c.change > 0 ? (
+                <TrendingUp className="w-3 h-3 text-green-600" />
+              ) : c.change < 0 ? (
+                <TrendingDown className="w-3 h-3 text-red-500" />
+              ) : (
+                <Minus className="w-3 h-3 text-muted-foreground" />
+              )}
+            </div>
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="font-['Geist'] text-[16px] font-semibold text-foreground tracking-tight">

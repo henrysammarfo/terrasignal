@@ -14,17 +14,36 @@ from app.models.schemas import CropSignal, NewsEvent
 
 logger = logging.getLogger(__name__)
 
-# Tier 1: often blocked or slow in restricted networks (e.g. Modal)
+# Tier 1: Agricultural commodity news
 RSS_FEEDS_PRIMARY = [
     "https://feeds.reuters.com/reuters/businessNews",
     "https://www.usda.gov/rss/home.xml",
 ]
 
-# Tier 2: different hosts; try when tier 1 fails so we still get real live news
+# Tier 2: Agricultural and food security
 RSS_FEEDS_SECONDARY = [
     "https://www.fao.org/feeds/fao-newsroom-rss",
     "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
     "https://reliefweb.int/updates/rss.xml",
+]
+
+# Tier 3: Disaster, environmental, and earth observation feeds
+RSS_FEEDS_DISASTER = [
+    "https://www.gdacs.org/xml/rss.xml",                       # GDACS global disaster alerts
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.atom",  # USGS significant earthquakes
+    "https://droughtmonitor.unl.edu/rss/DM_us.xml",            # US Drought Monitor
+    "https://www.fire.ca.gov/umbraco/api/IncidentFeed/RSSFeed", # CAL FIRE incidents
+    "https://www.nhc.noaa.gov/index-at.xml",                   # NOAA Hurricane Center Atlantic
+    "https://www.spc.noaa.gov/products/spcacrss.xml",          # NOAA Storm Prediction Center
+]
+
+# Tier 4: Environmental and land use change
+RSS_FEEDS_ENVIRONMENTAL = [
+    "https://earthobservatory.nasa.gov/feeds/earth-observatory.rss",  # NASA Earth Observatory
+    "https://climate.copernicus.eu/rss.xml",                          # Copernicus Climate
+    "https://www.esa.int/rssfeed/Our_Activities/Observing_the_Earth", # ESA Earth observation
+    "https://news.mongabay.com/feed/",                                # Mongabay (deforestation, environment)
+    "https://globalforestwatch.org/blog/rss",                         # Global Forest Watch
 ]
 
 # Timeout and retries for fetching feeds
@@ -87,25 +106,38 @@ def _parse_feed_list(urls: list[str], seen: set[str], out: list[NewsEvent]) -> N
 
 
 def parse_feeds() -> list[NewsEvent]:
-    """Try primary feeds first; if none return events, try secondary (real live feeds only)."""
+    """Try all feed tiers; primary first, then secondary, disaster, environmental."""
     seen: set[str] = set()
     out: list[NewsEvent] = []
+    
+    # Always try primary feeds
     _parse_feed_list(RSS_FEEDS_PRIMARY, seen, out)
-    if not out:
-        logger.info("Primary feeds returned no events; trying secondary feeds")
-        _parse_feed_list(RSS_FEEDS_SECONDARY, seen, out)
+    
+    # Always try secondary feeds (food security / UN)
+    _parse_feed_list(RSS_FEEDS_SECONDARY, seen, out)
+    
+    # Always try disaster feeds (GDACS, USGS, drought, fire, hurricane)
+    _parse_feed_list(RSS_FEEDS_DISASTER, seen, out)
+    
+    # Always try environmental feeds (NASA, ESA, deforestation)
+    _parse_feed_list(RSS_FEEDS_ENVIRONMENTAL, seen, out)
+    
+    logger.info("Total events from all feed tiers: %d", len(out))
     out.sort(key=lambda e: e.published_at, reverse=True)
-    return out[:50]
+    return out[:100]  # Increased from 50 to 100 for more diversity
 
 
 def score_relevance(event: NewsEvent) -> float:
-    """Use Flock to score 0.0–1.0 how likely this is a material crop stress event."""
+    """Use Flock to score 0.0–1.0 how likely this is a material event detectable by satellite."""
     if not settings.FLOCK_API_KEY:
         return 0.5
     system = (
-        "You are an agricultural commodity analyst. Score 0.0 to 1.0 how likely this "
-        "news headline indicates a material crop stress event (drought, flood, frost, "
-        "disease, harvest disruption) affecting commodity prices. Return ONLY a single float, no explanation."
+        "You are an Earth observation analyst. Score 0.0 to 1.0 how likely this "
+        "news headline indicates a real-world event that would be detectable via "
+        "satellite imagery (Sentinel-2). This includes: crop stress, drought, flood, "
+        "wildfire, deforestation, urbanization, volcanic eruption, landslide, "
+        "coastal erosion, water body changes, infrastructure damage. "
+        "Return ONLY a single float, no explanation."
     )
     user = f"{event.title}\n{event.content[:500]}"
     try:
@@ -120,13 +152,17 @@ def score_relevance(event: NewsEvent) -> float:
 
 
 def extract_signal(event: NewsEvent) -> CropSignal | None:
-    """Use Flock to extract region_name, crop_type, severity. Returns None if not agricultural."""
+    """Use Flock to extract region_name, crop_type, severity. Returns None if not EO-relevant."""
     if not settings.FLOCK_API_KEY:
         return None
     system = (
-        "Extract agricultural signal from this news item. Return JSON only: "
-        '{"region_name": "<place>", "crop_type": "<crop>", "severity": "low"|"medium"|"high"|"critical"}. '
-        "If the article is not clearly about crops/agriculture/commodity supply, return {\"region_name\": null}."
+        "Extract a satellite-observable signal from this news item. Return JSON only: "
+        '{"region_name": "<place>", "crop_type": "<crop or asset type>", '
+        '"severity": "low"|"medium"|"high"|"critical"}. '
+        "crop_type can be a crop (wheat, corn) OR an asset/event type "
+        "(forest, urban, water_body, infrastructure, wildfire, flood). "
+        "If the article is not about something observable from satellite, "
+        'return {"region_name": null}.'
     )
     user = f"{event.title}\n{event.content[:600]}"
     try:
@@ -141,7 +177,6 @@ def extract_signal(event: NewsEvent) -> CropSignal | None:
         sev = str(data.get("severity") or "low").lower()
         if sev not in ("low", "medium", "high", "critical"):
             sev = "low"
-        # Geocoder node fills bbox in next pipeline step before Sentinel query.
         return CropSignal(
             event=event,
             region_name=region_name,
@@ -157,7 +192,7 @@ def extract_signal(event: NewsEvent) -> CropSignal | None:
 def monitor_once() -> list[CropSignal]:
     """Parse feeds, filter by relevance, extract signals. Returns list of CropSignal."""
     events = parse_feeds()
-    logger.info("Parsed %d news events", len(events))
+    logger.info("Parsed %d news events from all tiers", len(events))
     signals: list[CropSignal] = []
     for event in events:
         if score_relevance(event) < settings.MIN_RELEVANCE_SCORE:
