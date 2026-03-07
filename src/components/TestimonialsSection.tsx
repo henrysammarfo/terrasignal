@@ -43,9 +43,9 @@ const TestimonialsSection = () => {
           <p className="text-[13px] font-semibold font-['Geist'] uppercase tracking-[0.12em] text-muted-foreground mb-3">
             Testimonials
           </p>
-          <h2 className="font-['Geist'] font-medium text-[42px] leading-[1.15] tracking-[-0.03em] text-foreground max-w-[480px]">
+          <h2 className="font-['Geist'] font-medium text-[28px] sm:text-[36px] md:text-[42px] leading-[1.15] tracking-[-0.03em] text-foreground max-w-[480px]">
             Trusted by{" "}
-            <span className="font-['Instrument_Serif'] italic text-[48px]">
+            <span className="font-['Instrument_Serif'] italic text-[34px] sm:text-[42px] md:text-[48px]">
               leading
             </span>{" "}
             trading teams

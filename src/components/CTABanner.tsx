@@ -20,9 +20,9 @@ const CTABanner = () => {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="mx-auto max-w-[1200px] rounded-3xl bg-foreground text-background px-8 py-20 md:px-20 text-center flex flex-col items-center"
       >
-        <h2 className="font-['Geist'] font-medium text-[38px] md:text-[48px] leading-[1.1] tracking-[-0.03em] mb-4 max-w-[600px]">
+        <h2 className="font-['Geist'] font-medium text-[28px] sm:text-[38px] md:text-[48px] leading-[1.1] tracking-[-0.03em] mb-4 max-w-[600px]">
           Start making{" "}
-          <span className="font-['Instrument_Serif'] italic text-[44px] md:text-[54px]">
+          <span className="font-['Instrument_Serif'] italic text-[34px] sm:text-[44px] md:text-[54px]">
             smarter
           </span>{" "}
           moves today
