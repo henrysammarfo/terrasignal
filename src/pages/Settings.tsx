@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AvatarUpload from "@/components/AvatarUpload";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const WEBHOOK_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/webhook-receiver`;
 
@@ -141,7 +142,10 @@ print(response.json())`;
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 bg-background/80 backdrop-blur-md border-b border-border">
-        <Logo />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Logo />
+        </div>
         <button
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 rounded-full border border-border px-3 sm:px-4 py-2 text-[13px] font-medium font-['Geist'] text-muted-foreground hover:text-foreground transition-colors"
