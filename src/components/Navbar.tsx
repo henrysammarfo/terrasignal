@@ -22,9 +22,9 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl bg-background/70 backdrop-blur-md border border-border/40 rounded-full shadow-lg"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-background/70 backdrop-blur-md border border-border/40 rounded-full shadow-lg"
     >
-      <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 mx-auto">
+      <div className="flex items-center gap-4 lg:gap-6 px-5 sm:px-6 py-2.5 whitespace-nowrap">
         {/* Logo */}
         <a href="/" className="shrink-0">
           <Logo />
