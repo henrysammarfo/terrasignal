@@ -124,7 +124,19 @@ const IntelFeed = () => {
                 onClick={() => setSelected(report)}
                 className="w-full text-left rounded-xl border border-border bg-card p-5 hover:border-foreground/20 transition-all group"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  {/* Satellite Thumbnail */}
+                  {sat?.thumbnail_url && (
+                    <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-border bg-muted">
+                      <img
+                        src={sat.thumbnail_url}
+                        alt={`Sentinel-2 · ${signal?.region_name}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <span className={`text-[11px] font-medium font-['Geist'] px-2 py-0.5 rounded-full border ${severityColors[signal?.severity || "low"]}`}>
