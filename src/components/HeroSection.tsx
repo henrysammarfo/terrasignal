@@ -1,7 +1,27 @@
 import { motion } from "motion/react";
-import { Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Satellite, Activity, Globe } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ signals: 0, regions: 0, reports: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [signalsRes, reportsRes] = await Promise.all([
+        supabase.from("crop_signals").select("region_name", { count: "exact" }),
+        supabase.from("intel_reports").select("id", { count: "exact" }),
+      ]);
+      const signals = signalsRes.count || 0;
+      const reports = reportsRes.count || 0;
+      const regions = new Set(signalsRes.data?.map(s => s.region_name)).size;
+      setStats({ signals, regions, reports });
+    };
+    fetchStats();
+  }, []);
+
   return (
     <section className="relative min-h-screen w-full overflow-hidden">
       {/* Background Video */}
@@ -18,7 +38,6 @@ const HeroSection = () => {
             type="video/mp4"
           />
         </video>
-        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[26.416%] from-transparent to-[66.943%] to-background" />
       </div>
 
@@ -31,12 +50,12 @@ const HeroSection = () => {
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="font-['Geist'] font-medium text-[36px] sm:text-[56px] md:text-[80px] leading-[1.05] tracking-[-0.04em] text-foreground"
         >
-          Simple{" "}
+          Autonomous{" "}
           <span className="font-['Instrument_Serif'] italic text-[44px] sm:text-[68px] md:text-[100px]">
-            management
+            intelligence
           </span>
           <br />
-          for your remote team
+          for commodity markets
         </motion.h1>
 
         {/* Description */}
@@ -46,53 +65,53 @@ const HeroSection = () => {
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
           className="font-['Geist'] text-[15px] sm:text-[18px] leading-[1.6] text-muted-foreground max-w-[554px]"
         >
-          TerraSignal delivers real-time commodity intelligence — monitoring
-          news, satellite imagery, and market signals so your team can act
-          before the market moves.
+          TerraSignal monitors global news, Sentinel-2 satellite imagery, and
+          weather data — then delivers actionable trade signals before the
+          market moves.
         </motion.p>
 
-        {/* Email Input Block */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
-          className="flex flex-col gap-4 max-w-[520px]"
+          className="flex flex-col sm:flex-row items-start gap-3 max-w-[520px]"
         >
-          {/* Input Container */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center rounded-[20px] sm:rounded-[40px] bg-card border border-border px-2 py-1.5 gap-2 sm:gap-0 shadow-lg">
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="flex-1 bg-transparent px-4 sm:px-5 py-3 text-[15px] font-['Geist'] text-foreground placeholder:text-muted-foreground outline-none"
-            />
-            <button className="rounded-[32px] px-6 py-3 text-[14px] font-medium font-['Geist'] bg-primary text-primary-foreground hover:opacity-90 transition-opacity whitespace-nowrap">
-              Create Free Account
-            </button>
-          </div>
+          <button
+            onClick={() => navigate("/auth")}
+            className="rounded-full px-8 py-3.5 text-[14px] font-medium font-['Geist'] bg-foreground text-background hover:opacity-90 transition-opacity"
+          >
+            Start Free — No Card Required
+          </button>
+          <button
+            onClick={() => navigate("/auth")}
+            className="rounded-full px-8 py-3.5 text-[14px] font-medium font-['Geist'] border border-border text-foreground hover:bg-muted/50 transition-colors"
+          >
+            View Live Dashboard
+          </button>
+        </motion.div>
 
-          {/* Social Proof */}
-          <div className="flex items-center gap-3 pl-2">
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400"
-                />
-              ))}
-            </div>
-            <span className="text-[13px] font-['Geist'] text-muted-foreground font-medium">
-              1,020+ Reviews
-            </span>
-            <div className="flex items-center gap-2 ml-1">
-              {["G", "▲", "◆", "★"].map((icon, i) => (
-                <span
-                  key={i}
-                  className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] text-muted-foreground"
-                >
-                  {icon}
-                </span>
-              ))}
-            </div>
+        {/* Live Stats Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.5 }}
+          className="flex flex-wrap items-center gap-6 sm:gap-10 mt-4"
+        >
+          <div className="flex items-center gap-2">
+            <Satellite className="w-4 h-4 text-muted-foreground" />
+            <span className="text-[14px] font-['Geist'] font-semibold text-foreground">{stats.signals}</span>
+            <span className="text-[13px] font-['Geist'] text-muted-foreground">Signals Detected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-muted-foreground" />
+            <span className="text-[14px] font-['Geist'] font-semibold text-foreground">{stats.regions}</span>
+            <span className="text-[13px] font-['Geist'] text-muted-foreground">Regions Monitored</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-muted-foreground" />
+            <span className="text-[14px] font-['Geist'] font-semibold text-foreground">{stats.reports}</span>
+            <span className="text-[13px] font-['Geist'] text-muted-foreground">Reports Generated</span>
           </div>
         </motion.div>
       </div>
