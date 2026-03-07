@@ -269,6 +269,74 @@ export type Database = {
           },
         ]
       }
+      trade_signals: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          id: string
+          price_target: string | null
+          rationale: string | null
+          report_id: string
+          signal: string
+          timeframe: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          price_target?: string | null
+          rationale?: string | null
+          report_id: string
+          signal?: string
+          timeframe?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          price_target?: string | null
+          rationale?: string | null
+          report_id?: string
+          signal?: string
+          timeframe?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_signals_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "intel_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watchlists: {
+        Row: {
+          alert_enabled: boolean
+          commodity: string
+          created_at: string
+          id: string
+          region: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_enabled?: boolean
+          commodity: string
+          created_at?: string
+          id?: string
+          region?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_enabled?: boolean
+          commodity?: string
+          created_at?: string
+          id?: string
+          region?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       weather_contexts: {
         Row: {
           created_at: string

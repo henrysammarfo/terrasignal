@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { LogOut, Activity, Map, BarChart3, Settings, Satellite, Menu, X, User } from "lucide-react";
+import { LogOut, Activity, Map, BarChart3, Settings, Satellite, Menu, X, User, Eye } from "lucide-react";
 import Logo from "@/components/Logo";
 import IntelFeed from "@/components/dashboard/IntelFeed";
 import SignalMap from "@/components/dashboard/SignalMap";
@@ -10,9 +10,10 @@ import SignalCharts from "@/components/dashboard/SignalCharts";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import CommodityTicker from "@/components/dashboard/CommodityTicker";
 import MarketChat from "@/components/dashboard/MarketChat";
+import Watchlist from "@/components/dashboard/Watchlist";
 import ThemeToggle from "@/components/ThemeToggle";
 
-type Tab = "feed" | "map" | "charts";
+type Tab = "feed" | "map" | "charts" | "watchlist";
 
 const getGoogleAvatar = (user: any): string | null => {
   return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
@@ -36,6 +37,7 @@ const Dashboard = () => {
     { id: "feed", label: "Intel Feed", shortLabel: "Feed", icon: Activity },
     { id: "map", label: "Signal Map", shortLabel: "Map", icon: Map },
     { id: "charts", label: "Charts", shortLabel: "Charts", icon: BarChart3 },
+    { id: "watchlist", label: "Watchlist", shortLabel: "Watch", icon: Eye },
   ];
 
   return (
@@ -177,6 +179,7 @@ const Dashboard = () => {
           )}
           {tab === "map" && <SignalMap />}
           {tab === "charts" && <SignalCharts />}
+          {tab === "watchlist" && <Watchlist />}
         </motion.div>
       </div>
 

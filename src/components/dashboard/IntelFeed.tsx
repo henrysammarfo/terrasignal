@@ -1,9 +1,11 @@
 import { useIntelReports, IntelReportRow } from "@/hooks/useIntelReports";
+import { useTradeSignals } from "@/hooks/useTradeSignals";
 import { motion } from "motion/react";
 import { AlertTriangle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useMemo, useState } from "react";
 import SignalDetail from "./SignalDetail";
 import IntelFeedFilters, { SortField, SortDir } from "./IntelFeedFilters";
+import TradeSignalBadge from "./TradeSignalBadge";
 
 const severityColors: Record<string, string> = {
   critical: "bg-destructive/10 text-destructive border-destructive/20",
@@ -23,6 +25,7 @@ const ConfidenceBadge = ({ value }: { value: number | null }) => {
 
 const IntelFeed = () => {
   const { data: reports, isLoading } = useIntelReports();
+  const { data: tradeSignals } = useTradeSignals();
   const [selected, setSelected] = useState<IntelReportRow | null>(null);
 
   const [severity, setSeverity] = useState("all");
@@ -30,6 +33,13 @@ const IntelFeed = () => {
   const [region, setRegion] = useState("all");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // Map trade signals by report_id
+  const tsMap = useMemo(() => {
+    const m = new Map<string, { signal: string; confidence: number | null }>();
+    tradeSignals?.forEach(ts => m.set(ts.report_id, { signal: ts.signal, confidence: ts.confidence }));
+    return m;
+  }, [tradeSignals]);
 
   const filtered = useMemo(() => {
     if (!reports) return [];
@@ -55,7 +65,7 @@ const IntelFeed = () => {
   }, [reports, severity, cropType, region, sortField, sortDir]);
 
   if (selected) {
-    return <SignalDetail report={selected} onBack={() => setSelected(null)} />;
+    return <SignalDetail report={selected} tradeSignal={tsMap.get(selected.id) || null} onBack={() => setSelected(null)} />;
   }
 
   if (isLoading) {
@@ -104,6 +114,7 @@ const IntelFeed = () => {
           {filtered.map((report, i) => {
             const signal = report.crop_signals;
             const sat = report.satellite_analyses?.[0];
+            const ts = tsMap.get(report.id);
             return (
               <motion.button
                 key={report.id}
@@ -124,6 +135,7 @@ const IntelFeed = () => {
                       )}
                       <span className="text-[11px] font-['Geist'] text-muted-foreground">·</span>
                       <span className="text-[11px] font-['Geist'] text-muted-foreground">{signal?.region_name}</span>
+                      <TradeSignalBadge reportId={report.id} signal={ts} />
                     </div>
                     <h3 className="font-['Geist'] font-medium text-[15px] text-foreground truncate">{report.headline}</h3>
                     {report.market_implication && (

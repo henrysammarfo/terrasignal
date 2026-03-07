@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.agent-scan]
 verify_jwt = false
+
+[functions.signal-scoring]
+verify_jwt = false
