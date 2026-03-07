@@ -1,6 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
+import { useTheme } from "next-themes";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface Region {
@@ -18,11 +20,64 @@ const severityColor: Record<string, string> = {
   low: "hsl(142, 71%, 45%)",
 };
 
+const LIGHT_TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+const DARK_TILES = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+
+/** Swaps tile layer when theme changes */
+const ThemeTileLayer = () => {
+  const { resolvedTheme } = useTheme();
+  const map = useMap();
+
+  useEffect(() => {
+    const url = resolvedTheme === "dark" ? DARK_TILES : LIGHT_TILES;
+    // Remove existing tile layers, add new one
+    map.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer) map.removeLayer(layer);
+    });
+    L.tileLayer(url).addTo(map);
+  }, [resolvedTheme, map]);
+
+  return null;
+};
+
+/** Hover label using native Leaflet tooltip (bypasses react-leaflet Context.Consumer bug) */
+const HoverMarker = ({ region }: { region: Region }) => {
+  const color = severityColor[region.severity] || severityColor.medium;
+
+  const bindTooltip = useCallback(
+    (marker: L.CircleMarker | null) => {
+      if (!marker) return;
+      const label = `${region.name} — ${region.count} signal${region.count > 1 ? "s" : ""}`;
+      marker.unbindTooltip();
+      marker.bindTooltip(label, {
+        direction: "top",
+        offset: [0, -8],
+        className: "signal-map-tooltip",
+      });
+    },
+    [region]
+  );
+
+  return (
+    <CircleMarker
+      ref={bindTooltip}
+      center={[region.lat, region.lng]}
+      radius={Math.min(8 + region.count * 2, 22)}
+      pathOptions={{
+        color,
+        fillColor: color,
+        fillOpacity: 0.35,
+        weight: 2,
+      }}
+    />
+  );
+};
+
 const SignalMapPreview = () => {
   const [regions, setRegions] = useState<Region[]>([]);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchRegions = async () => {
       const { data } = await supabase
         .from("crop_signals")
         .select("region_name, severity, bbox");
@@ -41,7 +96,6 @@ const SignalMapPreview = () => {
           existing.count++;
           if (lat) existing.lats.push(lat);
           if (lng) existing.lngs.push(lng);
-          // Keep highest severity
           const order = ["critical", "high", "medium", "low"];
           if (order.indexOf(s.severity) < order.indexOf(existing.severity)) {
             existing.severity = s.severity;
@@ -67,11 +121,27 @@ const SignalMapPreview = () => {
       setRegions(result);
     };
 
-    fetch();
+    fetchRegions();
   }, []);
 
   return (
     <section className="py-20 px-4 sm:px-8">
+      <style>{`
+        .signal-map-tooltip {
+          font-family: 'Geist', sans-serif;
+          font-size: 13px;
+          font-weight: 500;
+          padding: 6px 10px;
+          border-radius: 8px;
+          border: 1px solid hsl(var(--border));
+          background: hsl(var(--popover));
+          color: hsl(var(--popover-foreground));
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .signal-map-tooltip::before {
+          border-top-color: hsl(var(--popover)) !important;
+        }
+      `}</style>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="font-['Geist'] font-semibold text-[28px] sm:text-[36px] tracking-[-0.03em] text-foreground">
@@ -92,27 +162,9 @@ const SignalMapPreview = () => {
             className="w-full h-full"
             style={{ background: "hsl(var(--muted))" }}
           >
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            />
+            <ThemeTileLayer />
             {regions.map((r) => (
-              <CircleMarker
-                key={r.name}
-                center={[r.lat, r.lng]}
-                radius={Math.min(8 + r.count * 2, 22)}
-                pathOptions={{
-                  color: severityColor[r.severity] || severityColor.medium,
-                  fillColor: severityColor[r.severity] || severityColor.medium,
-                  fillOpacity: 0.35,
-                  weight: 2,
-                }}
-              >
-                <Popup>
-                  <span className="font-['Geist'] text-[13px] font-medium">
-                    {r.name} — {r.count} signal{r.count > 1 ? "s" : ""}
-                  </span>
-                </Popup>
-              </CircleMarker>
+              <HoverMarker key={r.name} region={r} />
             ))}
           </MapContainer>
         </div>
@@ -132,4 +184,3 @@ const SignalMapPreview = () => {
 };
 
 export default SignalMapPreview;
-
