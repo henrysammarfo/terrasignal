@@ -22,7 +22,7 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[960px] bg-background/70 backdrop-blur-md border border-border/40 rounded-[28px] shadow-lg"
+      className="fixed top-4 inset-x-4 mx-auto z-50 max-w-[960px] bg-background/70 backdrop-blur-md border border-border/40 rounded-[28px] shadow-lg"
     >
       <div className="flex items-center justify-between px-4 sm:px-6 py-2.5">
         {/* Logo */}
