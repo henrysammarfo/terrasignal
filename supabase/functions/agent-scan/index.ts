@@ -9,14 +9,25 @@ const corsHeaders = {
 
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-// Regions of interest for the agent to scan
+// Expanded scan targets covering diverse real-world event types beyond just agriculture
 const SCAN_TARGETS = [
-  { region: "Punjab, India", crop: "Wheat", bbox: [73.8, 29.5, 76.5, 32.0] },
-  { region: "Midwest USA", crop: "Corn", bbox: [-95.0, 37.0, -87.0, 43.0] },
-  { region: "Mato Grosso, Brazil", crop: "Soybean", bbox: [-58.0, -15.0, -50.0, -9.0] },
-  { region: "Nile Delta, Egypt", crop: "Rice", bbox: [30.0, 30.5, 32.0, 31.8] },
-  { region: "Ukraine Black Sea", crop: "Wheat", bbox: [30.0, 46.0, 37.0, 49.0] },
-  { region: "Queensland, Australia", crop: "Sugarcane", bbox: [145.0, -25.0, 153.0, -15.0] },
+  // Agriculture / Commodity
+  { region: "Punjab, India", category: "agriculture", crop: "Wheat", bbox: [73.8, 29.5, 76.5, 32.0] },
+  { region: "Midwest USA", category: "agriculture", crop: "Corn", bbox: [-95.0, 37.0, -87.0, 43.0] },
+  { region: "Mato Grosso, Brazil", category: "agriculture", crop: "Soybean", bbox: [-58.0, -15.0, -50.0, -9.0] },
+  { region: "Ukraine Black Sea", category: "agriculture", crop: "Wheat", bbox: [30.0, 46.0, 37.0, 49.0] },
+  // Disaster / Flood / Wildfire
+  { region: "Bangladesh Delta", category: "disaster", crop: "Rice", bbox: [88.5, 21.5, 92.0, 24.5] },
+  { region: "California, USA", category: "wildfire", crop: "Vineyards", bbox: [-124.0, 33.0, -117.0, 42.0] },
+  // Deforestation / Environmental
+  { region: "Borneo, Indonesia", category: "deforestation", crop: "Palm Oil", bbox: [108.0, -4.0, 119.0, 7.0] },
+  { region: "Amazon Basin, Brazil", category: "deforestation", crop: "Soybean", bbox: [-65.0, -10.0, -50.0, 2.0] },
+  // Water body / Infrastructure
+  { region: "Lake Chad Basin", category: "water_crisis", crop: "Millet", bbox: [12.0, 12.0, 16.0, 14.5] },
+  { region: "Nile Delta, Egypt", category: "urbanization", crop: "Rice", bbox: [30.0, 30.5, 32.0, 31.8] },
+  // New commodity regions
+  { region: "Queensland, Australia", category: "agriculture", crop: "Sugarcane", bbox: [145.0, -25.0, 153.0, -15.0] },
+  { region: "East Africa Highlands", category: "agriculture", crop: "Coffee", bbox: [34.0, -4.0, 42.0, 5.0] },
 ];
 
 Deno.serve(async (req) => {
@@ -28,7 +39,6 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // Authenticate the caller via JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -54,13 +64,11 @@ Deno.serve(async (req) => {
 
     const userId = claimsData.claims.sub as string;
 
-    // Service role client for DB writes
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Record scan start
     const { data: scanData } = await supabase
       .from("agent_scans")
       .insert({
@@ -74,41 +82,47 @@ Deno.serve(async (req) => {
 
     const results: any[] = [];
 
-    // Step 1: Use AI to detect current real-world agricultural events
-    const detectPrompt = `You are an agricultural intelligence analyst. Generate ${SCAN_TARGETS.length} realistic, current agricultural events based on real-world patterns. For each event, assess satellite-observable impacts.
+    const detectPrompt = `You are an Earth observation intelligence analyst. Generate ${SCAN_TARGETS.length} realistic, current real-world events detected via satellite imagery. Each event should be diverse — covering agriculture, disasters, deforestation, wildfires, water crises, and urbanization.
 
-Return EXACTLY this JSON structure for each region:
-${SCAN_TARGETS.map((t, i) => `Event ${i + 1}: Region "${t.region}", Crop "${t.crop}"`).join("\n")}
+For each region/category below, create a unique event:
+${SCAN_TARGETS.map((t, i) => `Event ${i + 1}: Region "${t.region}", Category "${t.category}", Crop/Asset "${t.crop}"`).join("\n")}
+
+IMPORTANT: Make events DIVERSE. Include:
+- At least 2 natural disasters (flood, cyclone, wildfire)
+- At least 2 agricultural stress events (drought, pest, disease)
+- At least 1 deforestation/land-use change event
+- At least 1 water body change or infrastructure event
+- Vary severity realistically
 
 Each event must have:
-- event_title: A specific, newsworthy headline (e.g. "Severe drought reduces wheat yields in Punjab by 30%")
-- event_content: 2-3 sentence description of what's happening
-- event_source: A plausible source (e.g. "FAO GIEWS", "USDA WASDE", "Reuters Commodities")
+- event_title: Specific satellite-detected headline (e.g. "Sentinel-2 detects 40% NDVI drop across Punjab wheat belt")
+- event_content: 2-3 sentences describing what satellite imagery reveals and ground impact
+- event_source: Realistic source (e.g. "Copernicus EMS", "NASA FIRMS", "FAO GIEWS", "USDA FAS", "ESA Sentinel Hub")
 - severity: one of "low", "medium", "high", "critical"
 - published_at: ISO date within the last 7 days
 
-For satellite analysis, provide realistic Sentinel-2 derived values:
-- ndvi_mean: typical range 0.2-0.8 (lower = stressed vegetation)
-- ndvi_delta: change from baseline, range -0.3 to 0.1
-- ndwi_mean: water index, range -0.1 to 0.5
-- msi_mean: moisture stress, range 0.5 to 2.0
-- anomaly_score: overall anomaly, range -3.0 to 3.0
-- cloud_cover_pct: 0-100
+Sentinel-2 satellite analysis (realistic values based on the event type):
+- ndvi_mean: 0.1-0.8 (lower for stressed/burned/flooded areas)
+- ndvi_delta: -0.5 to 0.1 (negative = vegetation loss)
+- ndwi_mean: -0.2 to 0.8 (higher for flooded areas)
+- msi_mean: 0.3 to 2.5 (higher for moisture stress)
+- anomaly_score: -4.0 to 4.0 (magnitude of deviation from normal)
+- cloud_cover_pct: 0-30
 - acquisition_date: ISO date within last 5 days
 
-For weather context:
-- precip_anomaly_mm: range -80 to 80
-- temp_anomaly_c: range -5 to 8
-- drought_index: one of "D0", "D1", "D2", "D3", "D4" or "None"
+Weather context:
+- precip_anomaly_mm: -100 to 200
+- temp_anomaly_c: -5 to 10
+- drought_index: "D0" to "D4" or "None"
 - soil_moisture_percentile: 0-100
 
-For the intel report:
-- headline: Actionable market intelligence headline
-- summary: 3-4 sentence analysis of implications
+Intel report:
+- headline: Actionable market/policy intelligence headline
+- summary: 3-4 sentence analysis combining satellite evidence with market/humanitarian implications
 - confidence: 0.0 to 1.0
-- market_implication: How this affects commodity markets and trading decisions
+- market_implication: How this affects commodity markets, supply chains, or policy decisions
 
-Make events realistic and varied in severity. At least one should be critical/high severity.`;
+Make events current, realistic, and varied. Think like a satellite analyst serving commodity traders, insurers, and policy makers.`;
 
     const aiResponse = await fetch(AI_URL, {
       method: "POST",
@@ -119,7 +133,7 @@ Make events realistic and varied in severity. At least one should be critical/hi
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are an agricultural intelligence AI agent. Return valid JSON only, no markdown." },
+          { role: "system", content: "You are a satellite intelligence AI agent that detects real-world events from Earth observation data. Return valid JSON only, no markdown." },
           { role: "user", content: detectPrompt },
         ],
         tools: [
@@ -127,7 +141,7 @@ Make events realistic and varied in severity. At least one should be critical/hi
             type: "function",
             function: {
               name: "submit_events",
-              description: "Submit detected agricultural events with satellite and weather analysis",
+              description: "Submit detected events with satellite and weather analysis",
               parameters: {
                 type: "object",
                 properties: {
@@ -141,7 +155,7 @@ Make events realistic and varied in severity. At least one should be critical/hi
                         event_source: { type: "string" },
                         severity: { type: "string", enum: ["low", "medium", "high", "critical"] },
                         published_at: { type: "string" },
-                        region_index: { type: "number", description: "Index into the scan targets array (0-based)" },
+                        region_index: { type: "number" },
                         satellite: {
                           type: "object",
                           properties: {
@@ -196,14 +210,12 @@ Make events realistic and varied in severity. At least one should be critical/hi
       console.error("AI gateway error:", aiResponse.status, errText);
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (aiResponse.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       throw new Error(`AI gateway error: ${aiResponse.status}`);
@@ -215,11 +227,9 @@ Make events realistic and varied in severity. At least one should be critical/hi
 
     const { events } = JSON.parse(toolCall.function.arguments);
 
-    // Step 2: Ingest each event into the database
     for (const event of events) {
       const target = SCAN_TARGETS[event.region_index] || SCAN_TARGETS[0];
 
-      // Insert crop signal
       const { data: signalData, error: signalError } = await supabase
         .from("crop_signals")
         .insert({
@@ -243,7 +253,6 @@ Make events realistic and varied in severity. At least one should be critical/hi
 
       const signalId = signalData.id;
 
-      // Insert satellite analysis
       const sat = event.satellite;
       await supabase.from("satellite_analyses").insert({
         signal_id: signalId,
@@ -256,7 +265,6 @@ Make events realistic and varied in severity. At least one should be critical/hi
         acquisition_date: sat.acquisition_date ?? null,
       });
 
-      // Insert weather context
       const wx = event.weather;
       await supabase.from("weather_contexts").insert({
         signal_id: signalId,
@@ -266,7 +274,6 @@ Make events realistic and varied in severity. At least one should be critical/hi
         soil_moisture_percentile: wx.soil_moisture_percentile ?? null,
       });
 
-      // Insert intel report
       const rpt = event.report;
       const { data: reportData, error: reportError } = await supabase
         .from("intel_reports")
@@ -285,11 +292,66 @@ Make events realistic and varied in severity. At least one should be critical/hi
         continue;
       }
 
+      // Auto-score trade signal for each report
+      try {
+        const tsResponse = await fetch(AI_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              { role: "system", content: "You are a commodity trading analyst. Produce a trade signal." },
+              { role: "user", content: `Region: ${target.region}, Crop: ${target.crop}, Severity: ${event.severity}, Headline: ${rpt.headline}, Market: ${rpt.market_implication}` },
+            ],
+            tools: [{
+              type: "function",
+              function: {
+                name: "trade_signal",
+                description: "Submit trade signal",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    signal: { type: "string", enum: ["buy", "sell", "hold"] },
+                    confidence: { type: "number" },
+                    rationale: { type: "string" },
+                    price_target: { type: "string" },
+                    timeframe: { type: "string" },
+                  },
+                  required: ["signal", "confidence", "rationale"],
+                  additionalProperties: false,
+                },
+              },
+            }],
+            tool_choice: { type: "function", function: { name: "trade_signal" } },
+          }),
+        });
+        if (tsResponse.ok) {
+          const tsData = await tsResponse.json();
+          const tsTool = tsData.choices?.[0]?.message?.tool_calls?.[0];
+          if (tsTool) {
+            const ts = JSON.parse(tsTool.function.arguments);
+            await supabase.from("trade_signals").insert({
+              report_id: reportData.id,
+              signal: ts.signal || "hold",
+              confidence: ts.confidence,
+              rationale: ts.rationale,
+              price_target: ts.price_target || null,
+              timeframe: ts.timeframe || null,
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Trade signal scoring error:", e);
+      }
+
       // Create notification
       await supabase.from("notifications").insert({
         user_id: userId,
         report_id: reportData.id,
-        title: `🛰️ Agent: ${rpt.headline}`,
+        title: `🛰️ ${target.category === "agriculture" ? "Crop Alert" : target.category === "disaster" ? "Disaster Alert" : target.category === "wildfire" ? "Wildfire Alert" : target.category === "deforestation" ? "Deforestation Alert" : "EO Alert"}: ${rpt.headline}`,
         message: rpt.market_implication,
       });
 
@@ -316,10 +378,10 @@ Make events realistic and varied in severity. At least one should be critical/hi
         headline: rpt.headline,
         severity: event.severity,
         region: target.region,
+        category: target.category,
       });
     }
 
-    // Update scan record
     if (scanId) {
       await supabase
         .from("agent_scans")
@@ -334,9 +396,10 @@ Make events realistic and varied in severity. At least one should be critical/hi
     return new Response(
       JSON.stringify({
         success: true,
-        agent: "TerraSignal AI Agent v1",
+        agent: "TerraSignal AI Agent v2",
         scan_id: scanId,
         events_detected: results.length,
+        categories: [...new Set(SCAN_TARGETS.map(t => t.category))],
         results,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -1,9 +1,11 @@
 import { IntelReportRow } from "@/hooks/useIntelReports";
 import { motion } from "motion/react";
-import { ArrowLeft, MapPin, Calendar, Cloud, Droplets, Thermometer, Leaf } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Cloud, Droplets, Thermometer, Leaf, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import TradeSignalBadge from "./TradeSignalBadge";
 
 interface Props {
   report: IntelReportRow;
+  tradeSignal?: { signal: string; confidence: number | null; rationale?: string; price_target?: string; timeframe?: string } | null;
   onBack: () => void;
 }
 
@@ -20,7 +22,13 @@ const Stat = ({ label, value, icon: Icon }: { label: string; value: string | num
   );
 };
 
-const SignalDetail = ({ report, onBack }: Props) => {
+const signalColors: Record<string, string> = {
+  buy: "border-green-500/30 bg-green-500/5",
+  sell: "border-red-500/30 bg-red-500/5",
+  hold: "border-yellow-500/30 bg-yellow-500/5",
+};
+
+const SignalDetail = ({ report, tradeSignal, onBack }: Props) => {
   const signal = report.crop_signals;
   const sat = report.satellite_analyses?.[0];
   const weather = report.weather_contexts?.[0];
@@ -33,7 +41,7 @@ const SignalDetail = ({ report, onBack }: Props) => {
 
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span className={`text-[11px] font-medium font-['Geist'] px-2 py-0.5 rounded-full border ${
             signal?.severity === "critical" ? "bg-destructive/10 text-destructive border-destructive/20" :
             signal?.severity === "high" ? "bg-orange-500/10 text-orange-600 border-orange-500/20" :
@@ -44,10 +52,31 @@ const SignalDetail = ({ report, onBack }: Props) => {
             <MapPin className="w-3 h-3" /> {signal?.region_name}
           </span>
           {signal?.crop_type && <span className="text-[12px] font-['Geist'] text-muted-foreground">· {signal.crop_type}</span>}
+          <TradeSignalBadge reportId={report.id} signal={tradeSignal} />
         </div>
         <h1 className="font-['Geist'] font-medium text-[24px] tracking-[-0.02em] text-foreground">{report.headline}</h1>
         <p className="font-['Geist'] text-[14px] text-muted-foreground mt-2">{report.summary}</p>
       </div>
+
+      {/* Trade Signal Detail */}
+      {tradeSignal && (
+        <div className={`rounded-xl border p-5 ${signalColors[tradeSignal.signal] || signalColors.hold}`}>
+          <div className="flex items-center gap-2 mb-2">
+            {tradeSignal.signal === "buy" ? <TrendingUp className="w-4 h-4 text-green-600" /> :
+             tradeSignal.signal === "sell" ? <TrendingDown className="w-4 h-4 text-red-500" /> :
+             <Minus className="w-4 h-4 text-yellow-600" />}
+            <h3 className="text-[13px] font-['Geist'] font-semibold text-foreground uppercase">{tradeSignal.signal} Signal</h3>
+            {tradeSignal.confidence != null && (
+              <span className="text-[12px] font-['Geist'] text-muted-foreground ml-auto">{Math.round(tradeSignal.confidence * 100)}% confidence</span>
+            )}
+          </div>
+          {tradeSignal.rationale && <p className="font-['Geist'] text-[13px] text-foreground mb-2">{tradeSignal.rationale}</p>}
+          <div className="flex gap-4 text-[12px] font-['Geist'] text-muted-foreground">
+            {tradeSignal.price_target && <span>Target: <strong className="text-foreground">{tradeSignal.price_target}</strong></span>}
+            {tradeSignal.timeframe && <span>Timeframe: <strong className="text-foreground">{tradeSignal.timeframe}</strong></span>}
+          </div>
+        </div>
+      )}
 
       {/* Market Implication */}
       {report.market_implication && (
