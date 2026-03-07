@@ -22,21 +22,21 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-background/70 backdrop-blur-md border border-border/40 rounded-full shadow-lg"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-5xl bg-background/70 backdrop-blur-md border border-border/40 rounded-[28px] shadow-lg"
     >
-      <div className="flex items-center gap-4 lg:gap-6 px-5 sm:px-6 py-2.5 whitespace-nowrap">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-2.5">
         {/* Logo */}
         <a href="/" className="shrink-0">
           <Logo />
         </a>
 
         {/* Desktop center nav */}
-        <div className="hidden md:flex items-center gap-5 lg:gap-8">
+        <div className="hidden md:flex items-center gap-4 lg:gap-6">
           {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
-              className="text-[14px] font-['Geist'] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="text-[13px] lg:text-[14px] font-['Geist'] font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
               {link.label}
             </a>
@@ -44,12 +44,12 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
           {session ? (
             <Link
               to="/dashboard"
-              className="text-[14px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-5 py-2 rounded-full hover:opacity-90 transition-opacity"
+              className="hidden sm:inline-flex text-[13px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
             >
               Dashboard
             </Link>
@@ -57,13 +57,13 @@ const Navbar = () => {
             <>
               <Link
                 to="/auth?mode=signup"
-                className="hidden sm:inline-flex text-[14px] font-['Geist'] font-medium text-foreground hover:text-foreground/80 transition-colors px-4 py-2"
+                className="hidden lg:inline-flex text-[13px] font-['Geist'] font-medium text-foreground hover:text-foreground/80 transition-colors px-3 py-2 whitespace-nowrap"
               >
                 Sign up
               </Link>
               <Link
                 to="/auth"
-                className="text-[14px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity shadow-sm"
+                className="hidden sm:inline-flex text-[13px] font-['Geist'] font-medium text-primary-foreground bg-foreground px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm whitespace-nowrap"
               >
                 Sign in
               </Link>
@@ -100,6 +100,24 @@ const Navbar = () => {
                   {link.label}
                 </a>
               ))}
+              {!session && (
+                <div className="flex flex-col gap-2 pt-2 border-t border-border/30 mt-2">
+                  <Link
+                    to="/auth?mode=signup"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-[14px] font-['Geist'] font-medium text-muted-foreground hover:text-foreground py-2 px-2 rounded-lg hover:bg-muted"
+                  >
+                    Sign up
+                  </Link>
+                  <Link
+                    to="/auth"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-[14px] font-['Geist'] font-medium text-primary-foreground bg-foreground py-2 px-4 rounded-full text-center"
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
