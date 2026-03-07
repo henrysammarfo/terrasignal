@@ -107,11 +107,11 @@ const SignalMapPreview = () => {
                   weight: 2,
                 }}
               >
-                <Tooltip direction="top" offset={[0, -10]}>
+                <Popup>
                   <span className="font-['Geist'] text-[13px] font-medium">
                     {r.name} — {r.count} signal{r.count > 1 ? "s" : ""}
                   </span>
-                </Tooltip>
+                </Popup>
               </CircleMarker>
             ))}
           </MapContainer>
