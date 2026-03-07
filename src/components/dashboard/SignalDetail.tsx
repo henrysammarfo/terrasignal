@@ -1,6 +1,6 @@
 import { IntelReportRow } from "@/hooks/useIntelReports";
 import { motion } from "motion/react";
-import { ArrowLeft, MapPin, Calendar, Cloud, Droplets, Thermometer, Leaf, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Cloud, Droplets, Thermometer, Leaf, TrendingUp, TrendingDown, Minus, Satellite, Eye } from "lucide-react";
 import TradeSignalBadge from "./TradeSignalBadge";
 
 interface Props {
@@ -26,6 +26,32 @@ const signalColors: Record<string, string> = {
   buy: "border-green-500/30 bg-green-500/5",
   sell: "border-red-500/30 bg-red-500/5",
   hold: "border-yellow-500/30 bg-yellow-500/5",
+};
+
+/** NDVI color bar: maps value [-1, 1] to a color */
+const ndviColor = (v: number) => {
+  if (v < 0) return "hsl(0, 70%, 50%)";
+  if (v < 0.1) return "hsl(30, 80%, 55%)";
+  if (v < 0.2) return "hsl(50, 85%, 50%)";
+  if (v < 0.4) return "hsl(80, 70%, 45%)";
+  if (v < 0.6) return "hsl(110, 60%, 40%)";
+  return "hsl(140, 65%, 35%)";
+};
+
+const NdviBar = ({ value, label }: { value: number; label: string }) => {
+  const pct = Math.max(0, Math.min(100, ((value + 1) / 2) * 100));
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[11px] font-['Geist'] text-muted-foreground w-20 shrink-0">{label}</span>
+      <div className="flex-1 h-5 rounded-full bg-muted overflow-hidden relative">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, backgroundColor: ndviColor(value) }}
+        />
+      </div>
+      <span className="text-[13px] font-['Geist'] font-semibold text-foreground w-14 text-right">{value.toFixed(3)}</span>
+    </div>
+  );
 };
 
 const SignalDetail = ({ report, tradeSignal, onBack }: Props) => {
@@ -91,18 +117,116 @@ const SignalDetail = ({ report, tradeSignal, onBack }: Props) => {
         </div>
       )}
 
-      {/* Satellite Data */}
+      {/* ═══════ Satellite Imagery Panel ═══════ */}
       {sat && (
-        <div>
-          <h3 className="text-[12px] font-['Geist'] font-medium text-muted-foreground uppercase tracking-wider mb-3">Satellite Analysis</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Stat label="NDVI Mean" value={sat.ndvi_mean} icon={Leaf} />
-            <Stat label="NDVI Delta" value={sat.ndvi_delta} icon={Leaf} />
-            <Stat label="NDWI" value={sat.ndwi_mean} icon={Droplets} />
-            <Stat label="MSI" value={sat.msi_mean} />
-            <Stat label="Anomaly" value={sat.anomaly_score} />
-            <Stat label="Cloud Cover" value={sat.cloud_cover_pct != null ? `${sat.cloud_cover_pct.toFixed(1)}%` : null} icon={Cloud} />
-            <Stat label="Acquired" value={sat.acquisition_date} icon={Calendar} />
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="flex items-center gap-2 px-5 pt-5 pb-3">
+            <Satellite className="w-4 h-4 text-primary" />
+            <h3 className="text-[13px] font-['Geist'] font-semibold text-foreground">Sentinel-2 Satellite Analysis</h3>
+            {sat.acquisition_date && (
+              <span className="ml-auto text-[11px] font-['Geist'] text-muted-foreground flex items-center gap-1">
+                <Calendar className="w-3 h-3" /> {sat.acquisition_date}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+            {/* Left: Thumbnail */}
+            {sat.thumbnail_url ? (
+              <div className="relative aspect-square md:aspect-auto md:min-h-[280px] bg-muted">
+                <img
+                  src={sat.thumbnail_url}
+                  alt={`Sentinel-2 RGB · ${signal?.region_name}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-black/60 text-white text-[10px] font-['Geist'] flex items-center gap-1">
+                  <Eye className="w-3 h-3" /> RGB Composite · Sentinel-2 L2A
+                </div>
+                {sat.cloud_cover_pct != null && (
+                  <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-black/60 text-white text-[10px] font-['Geist'] flex items-center gap-1">
+                    <Cloud className="w-3 h-3" /> {sat.cloud_cover_pct.toFixed(1)}% cloud
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center bg-muted min-h-[200px]">
+                <div className="text-center">
+                  <Satellite className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-[12px] font-['Geist'] text-muted-foreground">No satellite preview available</p>
+                </div>
+              </div>
+            )}
+
+            {/* Right: Spectral Indices */}
+            <div className="p-5 space-y-4">
+              <div>
+                <h4 className="text-[11px] font-['Geist'] font-medium text-muted-foreground uppercase tracking-wider mb-3">Vegetation Index (NDVI)</h4>
+                {sat.ndvi_mean != null && <NdviBar value={sat.ndvi_mean} label="Current" />}
+                {sat.ndvi_mean != null && sat.ndvi_delta != null && (
+                  <NdviBar value={sat.ndvi_mean - sat.ndvi_delta} label="Baseline" />
+                )}
+              </div>
+
+              {sat.ndvi_delta != null && (
+                <div className="rounded-lg border border-border p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-['Geist'] text-muted-foreground">Change Detection (ΔNDVI)</span>
+                    <span className={`text-[15px] font-['Geist'] font-bold ${sat.ndvi_delta >= 0 ? "text-green-600" : "text-destructive"}`}>
+                      {sat.ndvi_delta >= 0 ? "+" : ""}{sat.ndvi_delta.toFixed(4)}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-['Geist'] text-muted-foreground mt-1">
+                    {sat.ndvi_delta < -0.1 ? "Significant vegetation decline detected" :
+                     sat.ndvi_delta < 0 ? "Mild vegetation stress" :
+                     sat.ndvi_delta > 0.1 ? "Vegetation recovery observed" :
+                     "Stable vegetation conditions"}
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-2">
+                {sat.ndwi_mean != null && (
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Droplets className="w-3 h-3 text-blue-500" />
+                      <span className="text-[10px] font-['Geist'] text-muted-foreground">NDWI</span>
+                    </div>
+                    <span className="text-[15px] font-['Geist'] font-semibold text-foreground">{sat.ndwi_mean.toFixed(3)}</span>
+                  </div>
+                )}
+                {sat.msi_mean != null && (
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Thermometer className="w-3 h-3 text-orange-500" />
+                      <span className="text-[10px] font-['Geist'] text-muted-foreground">MSI (Stress)</span>
+                    </div>
+                    <span className="text-[15px] font-['Geist'] font-semibold text-foreground">{sat.msi_mean.toFixed(3)}</span>
+                  </div>
+                )}
+              </div>
+
+              {sat.anomaly_score != null && (
+                <div className={`rounded-lg border p-3 ${
+                  Math.abs(sat.anomaly_score) > 2 ? "border-destructive/30 bg-destructive/5" :
+                  Math.abs(sat.anomaly_score) > 1 ? "border-yellow-500/30 bg-yellow-500/5" :
+                  "border-border"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-['Geist'] text-muted-foreground">Anomaly Score</span>
+                    <span className={`text-[18px] font-['Geist'] font-bold ${
+                      Math.abs(sat.anomaly_score) > 2 ? "text-destructive" :
+                      Math.abs(sat.anomaly_score) > 1 ? "text-yellow-600" : "text-foreground"
+                    }`}>{sat.anomaly_score.toFixed(2)}σ</span>
+                  </div>
+                  <p className="text-[10px] font-['Geist'] text-muted-foreground mt-1">
+                    {Math.abs(sat.anomaly_score) > 2 ? "⚠️ Severe deviation from baseline — SCL-validated" :
+                     Math.abs(sat.anomaly_score) > 1 ? "⚡ Moderate deviation from historical baseline" :
+                     "Within normal range"}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
