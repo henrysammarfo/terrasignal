@@ -7,6 +7,7 @@ import SignalMapPreview from "@/components/SignalMapPreview";
 import Footer from "@/components/Footer";
 import PricingSection from "@/components/PricingSection";
 import CTABanner from "@/components/CTABanner";
+import ContactSection from "@/components/ContactSection";
 
 const Index = () => {
   return (
