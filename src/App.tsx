@@ -29,6 +29,7 @@ const App = () => (
             <Suspense fallback={null}>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/pitch" element={<PitchDeck />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route
