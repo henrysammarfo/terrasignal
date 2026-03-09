@@ -92,8 +92,10 @@ def parse_feeds() -> list[NewsEvent]:
     out: list[NewsEvent] = []
     _parse_feed_list(RSS_FEEDS_PRIMARY, seen, out)
     if not out:
-        logger.info("Primary feeds returned no events; trying secondary feeds")
+        logger.warning("Primary feeds returned no events; trying secondary feeds (FAO, UN, ReliefWeb)")
         _parse_feed_list(RSS_FEEDS_SECONDARY, seen, out)
+    if out:
+        logger.info("Parsed %d news events", len(out))
     out.sort(key=lambda e: e.published_at, reverse=True)
     return out[:50]
 
