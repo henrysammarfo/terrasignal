@@ -34,11 +34,12 @@ import modal
 app = modal.App("terrasignal-agent")
 
 # Image: ship the local repo to Modal and install deps.
-# copy=True so run_commands can run after (Modal requires add_local_* last or copy=True).
+# PYTHONUTF8=1 avoids 'charmap' codec errors during pip install on Modal builders.
 agent_image = (
     modal.Image.debian_slim(python_version="3.12")
     .add_local_dir(".", remote_path="/root/terrasignal", ignore=[".git", ".venv", "__pycache__", "node_modules", "dist"], copy=True)
-    .run_commands("pip install -r /root/terrasignal/requirements.txt")
+    .env({"PYTHONUTF8": "1"})
+    .run_commands("env PYTHONUTF8=1 pip install -r /root/terrasignal/requirements.txt")
 )
 
 

@@ -133,6 +133,55 @@ def _ndvi_from_stats(stats: dict[str, Any]) -> float | None:
     return float(max(-1.0, min(1.0, (mean_b08 - mean_b04) / denom)))
 
 
+def _ndwi_from_stats(stats: dict[str, Any]) -> float | None:
+    """Compute NDWI from per-band mean using Green (B03) and NIR (B08)."""
+    mean_b03 = None
+    mean_b08 = None
+    for k, v in stats.items():
+        if not isinstance(v, dict) or "mean" not in v:
+            continue
+        if "B03" in k or "b3" in k.lower() or k == "B03":
+            mean_b03 = v["mean"]
+        if "B08" in k or "b8" in k.lower() or k == "B08":
+            mean_b08 = v["mean"]
+    if mean_b03 is None and "B03" in stats and isinstance(stats["B03"], dict):
+        mean_b03 = stats["B03"].get("mean")
+    if mean_b08 is None and "B08" in stats and isinstance(stats["B08"], dict):
+        mean_b08 = stats["B08"].get("mean")
+    if mean_b03 is None or mean_b08 is None:
+        return None
+    denom = mean_b08 + mean_b03
+    if denom < 1e-8:
+        return None
+    return float(max(-1.0, min(1.0, (mean_b08 - mean_b03) / denom)))
+
+
+def _msi_from_stats(stats: dict[str, Any]) -> float | None:
+    """Compute Moisture Stress Index (MSI) from SWIR (B11) and NIR (B08).
+
+    MSI is typically defined as SWIR / NIR, higher = more stress.
+    """
+    mean_b11 = None
+    mean_b08 = None
+    for k, v in stats.items():
+        if not isinstance(v, dict) or "mean" not in v:
+            continue
+        if "B11" in k or "b11" in k.lower() or k == "B11":
+            mean_b11 = v["mean"]
+        if "B08" in k or "b8" in k.lower() or k == "B08":
+            mean_b08 = v["mean"]
+    if mean_b11 is None and "B11" in stats and isinstance(stats["B11"], dict):
+        mean_b11 = stats["B11"].get("mean")
+    if mean_b08 is None and "B08" in stats and isinstance(stats["B08"], dict):
+        mean_b08 = stats["B08"].get("mean")
+    if mean_b11 is None or mean_b08 is None:
+        return None
+    if abs(mean_b08) < 1e-8:
+        return None
+    # Typical MSI values are in ~0.3–2.5 range
+    return float(max(0.0, min(5.0, mean_b11 / mean_b08)))
+
+
 def get_best_image_data_api(
     bbox: list[float],
     target_date: str,
@@ -166,6 +215,8 @@ def get_best_image_data_api(
 
             stats = _item_statistics(COLLECTION, item_id, bbox, ["B04", "B08", "B03", "B11"])
             ndvi_mean = _ndvi_from_stats(stats)
+            ndwi_mean = _ndwi_from_stats(stats)
+            msi_mean = _msi_from_stats(stats)
             if ndvi_mean is None:
                 ndvi_mean = 0.0
                 logger.warning("Could not compute NDVI from Data API stats keys: %s", list(stats.keys()))
@@ -195,8 +246,8 @@ def get_best_image_data_api(
                     acquisition_date=acq_str,
                     ndvi_mean=ndvi_mean,
                     ndvi_delta=ndvi_delta,
-                    ndwi_mean=0.0,
-                    msi_mean=0.0,
+                    ndwi_mean=ndwi_mean if ndwi_mean is not None else 0.0,
+                    msi_mean=msi_mean if msi_mean is not None else 0.0,
                     cloud_cover_pct=cloud,
                     anomaly_score=anomaly_score,
                     thumbnail_path=thumbnail_path,

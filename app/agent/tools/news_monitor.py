@@ -31,11 +31,10 @@ RSS_FEEDS_SECONDARY = [
 RSS_FEEDS_DISASTER = [
     "https://www.gdacs.org/xml/rss.xml",                       # GDACS global disaster alerts
     "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.atom",  # USGS significant earthquakes
-    "https://droughtmonitor.unl.edu/rss/DM_us.xml",            # US Drought Monitor
-    "https://www.fire.ca.gov/umbraco/api/IncidentFeed/RSSFeed", # CAL FIRE incidents
     "https://www.nhc.noaa.gov/index-at.xml",                   # NOAA Hurricane Center Atlantic
     "https://www.spc.noaa.gov/products/spcacrss.xml",          # NOAA Storm Prediction Center
 ]
+# Removed: droughtmonitor.unl.edu (404), CAL FIRE (403). Use GDACS/NOAA for disasters.
 
 # Tier 4: Environmental and land use change
 RSS_FEEDS_ENVIRONMENTAL = [
@@ -165,28 +164,38 @@ def extract_signal(event: NewsEvent) -> CropSignal | None:
         'return {"region_name": null}.'
     )
     user = f"{event.title}\n{event.content[:600]}"
-    try:
-        data = chat_json(settings.FLOCK_API_KEY, settings.FLOCK_MODEL, system, user, max_tokens=256)
-        if not isinstance(data, dict):
+    last_error: Exception | None = None
+    for attempt in range(2):
+        try:
+            data = chat_json(settings.FLOCK_API_KEY, settings.FLOCK_MODEL, system, user, max_tokens=256)
+            if not isinstance(data, dict):
+                return None
+            region = data.get("region_name")
+            if region is None or (isinstance(region, str) and region.lower() in ("null", "n/a", "")):
+                return None
+            region_name = str(region).strip() or "Unknown"
+            crop_type = str(data.get("crop_type") or "unknown").strip()
+            sev = str(data.get("severity") or "low").lower()
+            if sev not in ("low", "medium", "high", "critical"):
+                sev = "low"
+            return CropSignal(
+                event=event,
+                region_name=region_name,
+                bbox=[0.0, 0.0, 0.0, 0.0],
+                crop_type=crop_type,
+                severity=sev,
+            )
+        except (OSError, ConnectionError) as e:
+            last_error = e
+            if attempt == 0:
+                time.sleep(1.0)
+                continue
+        except Exception as e:
+            logger.warning("Extract signal failed for %s: %s", event.title[:40], e)
             return None
-        region = data.get("region_name")
-        if region is None or (isinstance(region, str) and region.lower() in ("null", "n/a", "")):
-            return None
-        region_name = str(region).strip() or "Unknown"
-        crop_type = str(data.get("crop_type") or "unknown").strip()
-        sev = str(data.get("severity") or "low").lower()
-        if sev not in ("low", "medium", "high", "critical"):
-            sev = "low"
-        return CropSignal(
-            event=event,
-            region_name=region_name,
-            bbox=[0.0, 0.0, 0.0, 0.0],
-            crop_type=crop_type,
-            severity=sev,
-        )
-    except Exception as e:
-        logger.warning("Extract signal failed for %s: %s", event.title[:40], e)
-        return None
+    if last_error:
+        logger.warning("Extract signal failed for %s (connection): %s", event.title[:40], last_error)
+    return None
 
 
 def monitor_once() -> list[CropSignal]:

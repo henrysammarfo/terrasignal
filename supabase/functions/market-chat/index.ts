@@ -5,48 +5,68 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const FLOCK_URL = "https://api.flock.io/v1/chat/completions";
+const LOVABLE_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { messages } = await req.json();
+    const FLOCK_API_KEY = Deno.env.get("FLOCK_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const FLOCK_MODEL = Deno.env.get("FLOCK_MODEL") || "qwen3-30b-a3b-instruct-2507";
 
-    const systemPrompt = `You are TerraSignal AI — an expert commodity market analyst with deep knowledge of agricultural markets, satellite-based crop monitoring (Sentinel-2 NDVI/NDWI analysis), weather patterns, and global supply chain dynamics.
+    const useFlock = !!FLOCK_API_KEY;
+
+    if (!useFlock && !LOVABLE_API_KEY) {
+      throw new Error("Set FLOCK_API_KEY or LOVABLE_API_KEY in Edge Function secrets");
+    }
+
+    const systemPrompt = `You are TerraSignal AI — an expert analyst with deep knowledge of agricultural markets, satellite-based crop monitoring (Sentinel-2 NDVI/NDWI/MSI), weather patterns, disasters, and global supply chains.
 
 Your capabilities:
 - Analyze crop signals, satellite data (NDVI, NDWI, MSI, anomaly scores), and weather anomalies
 - Provide market implications for corn, wheat, soybeans, sugar, coffee, cotton, and other agricultural commodities
 - Explain how satellite-derived vegetation indices relate to crop health and yield forecasts
-- Discuss global food security, trade flows, and supply/demand dynamics
+- Discuss global food security, trade flows, disasters, and supply/demand dynamics
 - Generate trade ideas with directional bias (bullish/bearish) and confidence levels
 - Interpret drought indices, precipitation anomalies, and soil moisture data
 
 Personality:
 - Concise and data-driven, like a Bloomberg terminal analyst
 - Use bullet points for key takeaways
-- Always mention relevant commodity tickers when discussing markets
 - Cite specific data points when possible
 - End market analysis with a clear directional call (Bullish/Bearish/Neutral) and confidence %
 
 Format responses in markdown. Keep answers focused and actionable.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
+    const body = {
+      model: useFlock ? FLOCK_MODEL : "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages,
+      ],
+      stream: true,
+    };
+
+    const response = useFlock
+      ? await fetch(FLOCK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-litellm-api-key": FLOCK_API_KEY!,
+          },
+          body: JSON.stringify(body),
+        })
+      : await fetch(LOVABLE_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -56,7 +76,7 @@ Format responses in markdown. Keep answers focused and actionable.`;
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits in Settings → Workspace → Usage." }), {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Use Flock by setting FLOCK_API_KEY in Edge Function secrets, or add Lovable credits." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

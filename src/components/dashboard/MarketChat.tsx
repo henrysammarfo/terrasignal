@@ -179,8 +179,8 @@ const MarketChat = () => {
               {messages.length === 0 && (
                 <div className="text-center pt-8">
                   <Bot className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="font-['Geist'] text-[14px] font-medium text-foreground mb-1">Ask me anything about commodities</p>
-                  <p className="font-['Geist'] text-[12px] text-muted-foreground mb-6">I analyze satellite data, weather, and market signals</p>
+                  <p className="font-['Geist'] text-[14px] font-medium text-foreground mb-1">Ask me anything about signals, crop stress, weather, and markets</p>
+                  <p className="font-['Geist'] text-[12px] text-muted-foreground mb-6">I analyze satellite data, weather, disasters, and market implications</p>
                   <div className="space-y-2">
                     {suggestedPrompts.map((prompt) => (
                       <button
@@ -245,7 +245,7 @@ const MarketChat = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask about commodities, signals, trade ideas..."
+                  placeholder="Ask about signals, crop stress, weather, markets..."
                   rows={1}
                   className="flex-1 resize-none bg-muted rounded-xl px-4 py-2.5 text-[13px] font-['Geist'] text-foreground placeholder:text-muted-foreground outline-none max-h-[120px] overflow-y-auto"
                   style={{ minHeight: "40px" }}
