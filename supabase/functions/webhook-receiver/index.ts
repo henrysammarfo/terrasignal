@@ -79,12 +79,13 @@ Deno.serve(async (req) => {
       const { error } = await supabase.from("satellite_analyses").insert({
         signal_id: signalId,
         acquisition_date: satellite.acquisition_date || null,
-        ndvi_mean: satellite.ndvi_mean || null,
-        ndvi_delta: satellite.ndvi_delta || null,
-        ndwi_mean: satellite.ndwi_mean || null,
-        msi_mean: satellite.msi_mean || null,
-        cloud_cover_pct: satellite.cloud_cover_pct || null,
-        anomaly_score: satellite.anomaly_score || null,
+        // Do NOT use `|| null` for numeric fields so that 0 is preserved.
+        ndvi_mean: satellite.ndvi_mean,
+        ndvi_delta: satellite.ndvi_delta,
+        ndwi_mean: satellite.ndwi_mean,
+        msi_mean: satellite.msi_mean,
+        cloud_cover_pct: satellite.cloud_cover_pct,
+        anomaly_score: satellite.anomaly_score,
         thumbnail_url: satellite.thumbnail_url || null,
       });
       if (error) console.error("Satellite insert error:", error);
@@ -96,10 +97,10 @@ Deno.serve(async (req) => {
         signal_id: signalId,
         date_from: weather.date_from || null,
         date_to: weather.date_to || null,
-        precip_anomaly_mm: weather.precip_anomaly_mm || null,
-        temp_anomaly_c: weather.temp_anomaly_c || null,
+        precip_anomaly_mm: weather.precip_anomaly_mm,
+        temp_anomaly_c: weather.temp_anomaly_c,
         drought_index: weather.drought_index || null,
-        soil_moisture_percentile: weather.soil_moisture_percentile || null,
+        soil_moisture_percentile: weather.soil_moisture_percentile,
       });
       if (error) console.error("Weather insert error:", error);
     }
